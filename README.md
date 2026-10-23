@@ -1,64 +1,72 @@
 # Wallnut (Ardys)
 
-Wallnut es la idea de una aplicación universitaria con una wallet digital gamificada. Estudiantes, docentes y administradores usarían "Ardys", un sistema de puntos para incentivar la participación en eventos y canjear recompensas.
+Plataforma móvil para una institución universitaria. Digitaliza las actividades del campus (charlas, debates, laboratorios, eventos de la comunidad) y propone una nueva economía basada en **puntos positivos**: quien participa gana puntos, los guarda en su billetera y puede transferirlos o usarlos dentro de la comunidad.
 
-> **Estado:** concepto. Este repositorio todavía no tiene código; solo contiene este README. Lo que sigue describe el alcance previsto, no funcionalidades implementadas.
+> **Código:** el repositorio principal es privado y está en la organización [BBMC-S-S-A](https://github.com/BBMC-S-S-A) (`BBMC-S-S-A/Wallnut`). Este repositorio es la ficha pública del proyecto. El código completo se comparte bajo acuerdo.
 
-## Qué es
+## Qué hace
 
-Una plataforma que pretende reunir en un solo lugar tres cosas:
-
-- **Gestión académica:** eventos, actividades y participación de la comunidad universitaria.
-- **Economía digital:** un saldo de puntos Ardys por usuario, con un historial de lo que gana y de lo que gasta.
-- **Interacción social:** visibilidad de la participación y de las recompensas.
+- **Actividades del campus:** cada actividad se publica en la app, y la asistencia se registra escaneando un código QR con la cámara del teléfono.
+- **Economía de puntos positivos:** participar suma puntos. Cada usuario tiene saldo e historial de movimientos, y puede transferir puntos a otra persona.
+- **Ranking:** una tabla de líderes muestra a quienes más participan.
+- **Retos de comunidad:** eventos extra en los que se apuestan puntos; los resuelve un organizador.
+- **Ardy:** asistente dentro de la app que acompaña al usuario.
+- **Cuenta:** registro e inicio de sesión, con la sesión guardada en el teléfono.
 
 ## Arquitectura
-
-Arquitectura prevista. Todavía no está implementada.
 
 ```
  Estudiante / Docente / Admin
             │
             ▼
-   Frontend web (Next.js)
-            │  HTTP / API routes
+  App Expo / React Native  (Android · iOS · web)
+  Expo Router · NativeWind · cámara para QR
+            │  HTTP (JSON)
             ▼
-   Lógica de negocio
-   (usuarios, roles, eventos, saldo Ardys)
+  API Express
+  usuarios · saldo · transferencias · eventos · ranking
             │
             ▼
-       PostgreSQL
+  Libro de movimientos encadenado por hash
+  (blockchain simulada, guardada en JSON)
 ```
+
+**Por qué un libro encadenado:** cada transacción de puntos guarda el hash de la anterior. Si alguien edita un movimiento viejo, la cadena deja de cuadrar. Así nadie puede alterar el historial de la economía sin que se note, y sin necesidad de una blockchain real.
 
 ## Herramientas e infraestructura
 
-Stack previsto. Todavía no hay dependencias declaradas en el repositorio.
+| Capa | Herramienta |
+|------|-------------|
+| App | Expo SDK 54, React Native 0.81, React 19, TypeScript |
+| Navegación | Expo Router, React Navigation (pestañas y pilas) |
+| Estilos | NativeWind (Tailwind para React Native) |
+| Cámara y QR | expo-camera, react-native-qrcode-svg |
+| Sesión local | AsyncStorage |
+| API | Express 5 |
+| Persistencia | Archivo JSON con una cadena de bloques simulada |
 
-| Capa | Herramienta prevista |
-|------|----------------------|
-| Frontend | React / Next.js con TypeScript |
-| Base de datos | PostgreSQL |
+## Endpoints principales
 
-## Funcionalidades previstas
-
-- Tres roles: estudiante, docente y administrador.
-- Asignar Ardys por asistir o participar en eventos.
-- Consultar el saldo y el historial de movimientos.
-- Canjear recompensas.
-
-Ninguna de estas funcionalidades está implementada todavía.
+| Método | Ruta | Para qué |
+|--------|------|----------|
+| POST | `/register`, `/login` | Cuenta |
+| GET | `/balance/:publicId`, `/transactions/:publicId` | Saldo e historial |
+| POST | `/transfer` | Transferir puntos |
+| GET | `/chain` | Ver el libro de movimientos |
+| GET | `/leaderboard` | Ranking |
+| GET / POST | `/events`, `/events/:id/claim` | Actividades y reclamo de puntos |
+| POST | `/events-extra`, `/events-extra/:id/bet`, `/events-extra/:id/resolve` | Retos de comunidad |
 
 ## Cómo correrlo
 
-No aplica: el repositorio aún no contiene código ejecutable.
+Desde el repositorio privado:
 
-## Estructura
-
-```
-wallnut/
-└── README.md
+```bash
+npm install
+node server/server.js   # API
+npm start               # Expo (después: a para Android, i para iOS, w para web)
 ```
 
 ## Estado
 
-Fase de idea y definición. Falta crear el proyecto base, el modelo de datos (usuarios, roles, eventos, transacciones de Ardys) y la autenticación.
+Prototipo funcional, terminado en noviembre de 2025. El desarrollo está en pausa y abierto a venta o a que alguien lo continúe. Para llevarlo a producción faltaría cambiar el archivo JSON por una base de datos y definir con la universidad las reglas de la economía de puntos.
