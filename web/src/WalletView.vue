@@ -1,0 +1,138 @@
+<script setup lang="ts">
+import { onMounted, ref } from 'vue'
+import { ArrowRight, History, Target } from '@lucide/vue'
+import { api, errorText, RequestError, type Wallet, type WalletConversion } from './client'
+import CoinCard from './CoinCard.vue'
+
+const props = defineProps<{ token: string; accountId: string; name: string }>()
+const emit = defineEmits<{ expired: []; academic: []; shop: [] }>()
+const wallet = ref<Wallet>()
+const loading = ref(false)
+const converting = ref('')
+const problem = ref('')
+const notice = ref('')
+const numbers = new Intl.NumberFormat('es-CO')
+const dates = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeZone: 'America/Bogota' })
+const labels = {
+  evidence_reward: 'Evidencia aprobada',
+  goal_coins: 'Meta verificada',
+  coin_conversion: 'Canje de Coins a Points',
+  grade_redemption: 'Canje académico',
+  ardy_purchase: 'Compra para tu Ardy',
+  ardy_nut: 'Compra de una nuez',
+  coin_sent: 'Pago de Ardi Coins',
+  coin_received: 'Coins recibidos',
+}
+
+function handleError(error: unknown) {
+  if (error instanceof RequestError && error.status === 401) emit('expired')
+  else problem.value = errorText(error)
+}
+
+async function load() {
+  if (loading.value) return
+  loading.value = true
+  problem.value = ''
+  try {
+    wallet.value = await api<Wallet>('/wallet', { token: props.token })
+  } catch (error) {
+    handleError(error)
+  } finally {
+    loading.value = false
+  }
+}
+onMounted(load)
+
+async function convert(goal: WalletConversion) {
+  if (converting.value || goal.converted) return
+  converting.value = goal.evidence_id
+  problem.value = ''
+  notice.value = ''
+  try {
+    await api(`/workshops/${goal.workshop_id}/evidence/${goal.evidence_id}/convert`, {
+      token: props.token, method: 'POST',
+    })
+    notice.value = 'Canje registrado.'
+    await load()
+  } catch (error) {
+    handleError(error)
+  } finally {
+    converting.value = ''
+  }
+}
+
+function amount(value: number) {
+  return `${value > 0 ? '+' : ''}${numbers.format(value)}`
+}
+</script>
+
+<template>
+  <section class="economy-page" aria-labelledby="wallet-heading">
+    <div class="section-heading">
+      <div>
+        <h1 id="wallet-heading">Billetera</h1>
+        <p>Consulta tus saldos y el origen de cada abono.</p>
+      </div>
+      <button v-if="wallet" class="button quiet" type="button" :disabled="loading || !!converting" @click="load">
+        Actualizar saldo
+      </button>
+    </div>
+    <p v-if="notice" class="success" role="status">{{ notice }}</p>
+    <p v-if="problem" class="error" role="alert">{{ problem }}</p>
+    <p v-if="loading && !wallet" class="state-note" role="status">Cargando tu billetera…</p>
+    <button v-if="problem && !wallet" class="button secondary" type="button" @click="load">Reintentar</button>
+    <template v-if="wallet">
+      <div class="wallet-balances">
+        <article class="tile wallet-balance">
+          <img src="/ardi-points.png" alt="" width="80" height="80" />
+          <div><h2>Ardi Points disponibles</h2><p>{{ numbers.format(wallet.points) }}</p></div>
+        </article>
+      </div>
+      <p v-if="wallet.reserved_points" class="state-note">
+        {{ numbers.format(wallet.reserved_points) }} Points reservados en solicitudes académicas.
+      </p>
+      <button class="button secondary academic-shortcut" type="button" @click="emit('academic')">
+        Ver canjes académicos <ArrowRight :size="16" aria-hidden="true" />
+      </button>
+      <CoinCard :token="token" :account-id="accountId" :name="name" :coins="wallet.coins"
+        @changed="load" @expired="emit('expired')" />
+      <button class="button secondary academic-shortcut" type="button" @click="emit('shop')">
+        Ir a la tienda de Ardy <ArrowRight :size="16" aria-hidden="true" />
+      </button>
+
+      <section class="wallet-section" aria-labelledby="wallet-goals">
+        <h2 id="wallet-goals"><Target :size="22" aria-hidden="true" /> Canjes por metas verificadas</h2>
+        <p v-if="!wallet.conversions.length" class="tile state-note">Los canjes aparecerán cuando un docente verifique una meta.</p>
+        <article v-for="goal in wallet.conversions" :key="goal.evidence_id" class="tile wallet-conversion">
+          <div>
+            <span class="wallet-context">{{ goal.course }} · {{ goal.workshop }}</span>
+            <h3>{{ goal.goal }}</h3>
+            <p>{{ numbers.format(goal.coin_cost) }} Coins <ArrowRight :size="16" aria-label="por" /> {{ numbers.format(goal.points) }} Points</p>
+            <small v-if="!goal.converted && wallet.coins < goal.coin_cost">Saldo insuficiente de Coins.</small>
+          </div>
+          <span v-if="goal.converted" class="badge badge-confirmed">Canjeado</span>
+          <button v-else class="button primary" type="button" :disabled="!!converting || loading || wallet.coins < goal.coin_cost"
+            @click="convert(goal)">{{ converting === goal.evidence_id ? 'Canjeando…' : 'Canjear por Points' }}</button>
+        </article>
+      </section>
+
+      <section class="wallet-section" aria-labelledby="wallet-movements">
+        <h2 id="wallet-movements"><History :size="22" aria-hidden="true" /> Movimientos</h2>
+        <p v-if="!wallet.movements.length" class="tile state-note">Aún no tienes movimientos.</p>
+        <ol v-else class="tile wallet-history">
+          <li v-for="movement in wallet.movements" :key="movement.id">
+            <div>
+              <h3>{{ labels[movement.kind] }}</h3>
+              <p>{{ movement.course }}<template v-if="movement.workshop"> · {{ movement.workshop }}</template></p>
+              <time :datetime="movement.created_at">{{ dates.format(new Date(movement.created_at)) }}</time>
+            </div>
+            <ul class="wallet-deltas">
+              <li v-if="movement.points" :class="{ 'delta-positive': movement.points > 0 }">{{ amount(movement.points) }} Points</li>
+              <li v-if="movement.coins" :class="{ 'delta-positive': movement.coins > 0 }">{{ amount(movement.coins) }} Coins</li>
+            </ul>
+          </li>
+        </ol>
+      </section>
+    </template>
+  </section>
+</template>

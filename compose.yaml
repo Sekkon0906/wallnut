@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: wallnut
+      POSTGRES_PASSWORD: wallnut_local
+      POSTGRES_DB: wallnut_demo
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - wallnut_data:/var/lib/postgresql/data
+
+volumes:
+  wallnut_data:
