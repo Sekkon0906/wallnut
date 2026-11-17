@@ -9,7 +9,7 @@ from pydantic import AwareDatetime, BaseModel, StringConstraints
 from .database import Database
 from .economy import credit_approved_evidence
 from .identity import CurrentAccount
-from .workshops import is_assigned_faculty, is_facilitator
+from .workshops import is_assigned_faculty, is_facilitator, require_active_workshop
 
 router = APIRouter(prefix="/workshops/{workshop_id}/evidence", tags=["Evidencias"])
 
@@ -63,7 +63,7 @@ class EvidenceReview(BaseModel):
 def get_workshop(db, workshop_id):
     workshop = db.execute(
         """
-        SELECT w.id, w.facilitator_id, w.starts_at <= now() AS started, c.faculty_id
+        SELECT w.id, w.facilitator_id, w.starts_at <= now() AS started, w.cancelled_at, c.faculty_id
         FROM workshops w JOIN workshop_calls p ON p.id = w.call_id
         JOIN course_sections c ON c.id = p.course_id
         WHERE w.id = %s
@@ -83,6 +83,7 @@ def require_reviewer(workshop, account):
 def require_submitter(db, workshop_id, workshop, account):
     if account.role != "student":
         raise HTTPException(403, "Las evidencias se entregan desde una cuenta de estudiante.")
+    require_active_workshop(workshop)
     if is_facilitator(workshop, account):
         if not workshop["started"]:
             raise HTTPException(409, "Podrás entregar la evidencia cuando comience el taller.")

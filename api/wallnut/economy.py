@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field, StringConstraints, model_validator
 from .campus import Admin
 from .database import Database
 from .identity import CurrentAccount
-from .workshops import is_assigned_faculty, load_workshop
+from .workshops import is_assigned_faculty, load_workshop, require_active_workshop
 
 router = APIRouter(tags=["Economía"])
 PositiveAmount = Annotated[int, Field(strict=True, ge=1, le=1_000_000)]
@@ -235,6 +235,7 @@ def save_workshop_policy(workshop_id: UUID, body: WorkshopEconomy, account: Curr
     with db.transaction():
         workshop = load_workshop(db, workshop_id, exclusive_lock=True)
         require_faculty(workshop, account)
+        require_active_workshop(workshop)
         existing = get_policy(db, workshop_id)
         if existing == body.model_dump():
             return existing

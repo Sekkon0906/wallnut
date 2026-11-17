@@ -83,7 +83,7 @@ def seed_active_workshop(db):
         JOIN workshop_calls c ON c.id = w.call_id
         JOIN course_sections s ON s.id = c.course_id
         WHERE s.code = 'MAT303' AND s.term = 'PILOTO' AND s.section = '01'
-          AND c.title = %s AND now() >= w.starts_at AND now() < w.ends_at
+          AND c.title = %s AND w.cancelled_at IS NULL AND now() >= w.starts_at AND now() < w.ends_at
         """,
         (ACTIVE_WORKSHOP,),
     ).fetchone()

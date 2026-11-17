@@ -16,6 +16,7 @@ La [guía de despliegue del piloto](docs/despliegue-del-piloto.md) incluye el ar
 - Durante el taller, el docente o el tallerista genera un QR y un código manual con vigencia de hasta cinco minutos. El estudiante inscrito usa cualquiera de los dos para registrar su asistencia una sola vez.
 - Después de registrar asistencia, el estudiante entrega una foto y un texto. El tallerista aprobado puede entregar su evidencia desde el inicio del taller. El docente aprueba la entrega o la devuelve con una observación para que el autor la corrija.
 - La Agenda conserva los talleres anteriores para consultar y dar seguimiento a las evidencias.
+- Antes del inicio, el docente o tallerista asignado puede reprogramar el taller sin perder inscripciones. El docente o Administración puede cancelarlo. La agenda conserva el estado y el motivo del cambio.
 - Administración asigna un cupo de Ardi Points por docente. El docente configura cuánto otorga por cada evidencia aprobada de un asistente o del tallerista.
 - Una meta académica verificada por el docente otorga Ardi Coins. El estudiante puede usar los Coins para canjear Ardi Points desde el cupo docente. Cada movimiento conserva el taller y la materia de origen.
 - El docente configura el canje académico del grupo con una equivalencia en Points, un tope por corte, un mínimo opcional y los grupos de origen que admite. La plataforma trabaja con notas simuladas.
@@ -148,13 +149,19 @@ La colección del piloto tiene ocho prendas, dos por rareza, y cada nuez desbloq
 
 El asistente usa guías de Wallnut y adapta las acciones a la cuenta. La conversación se conserva en la pantalla mientras está abierta.
 
+### Probar cambios en la agenda
+
+1. Agenda un taller futuro desde **Comunidad → Convocatorias** e inscríbete desde una cuenta estudiantil.
+2. Como docente o tallerista asignado, entra en **Agenda → Reprogramar**. Cambia el horario o lugar e indica el motivo. Como estudiante, abre **Mis talleres** y verifica el nuevo horario y tu inscripción.
+3. Como docente asignado o Administración, elige **Cancelar taller** e indica el motivo. La ficha se conserva en **Cancelados** y la inscripción permanece en el historial. La cancelación cierra los cupos, el QR y las evidencias de ese taller.
+
 ## Probar el APK de demostración
 
 Inicia primero la API y la web local como se explica arriba. Con un emulador Android abierto o un teléfono de desarrollo conectado por USB:
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito12-demo.apk
+adb install -r Wallnut-Android-hito13-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

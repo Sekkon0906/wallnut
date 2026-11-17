@@ -31,16 +31,18 @@ class Topic:
 
 TOPICS = (
     Topic("workshops", "Talleres y convocatorias",
-          ("taller", "talleres", "convocatoria", "convocatorias", "tallerista", "inscribo a un taller"),
+          ("taller", "talleres", "convocatoria", "convocatorias", "tallerista", "inscribo a un taller",
+           "reprogramar taller", "cancelar taller", "mis talleres"),
           {
               "student": Guide(
                   "Abre Agenda y selecciona un taller con cupos para inscribirte. "
-                  "Para dirigir un taller, abre Comunidad, entra en Convocatorias y elige Postularme.",
+                  "En Mis talleres puedes consultar el motivo de una reprogramación o cancelación. "
+                  "Para dirigir un taller, abre Comunidad → Convocatorias y elige Postularme.",
                   "agenda",
               ),
               "faculty": Guide(
                   "En Comunidad → Convocatorias publica una convocatoria para un grupo asignado. "
-                  "Selecciona al tallerista y programa el taller con lugar, fecha y cupos.",
+                  "Selecciona al tallerista y agenda el taller. En Agenda puedes reprogramarlo o cancelarlo antes de su inicio.",
                   "calls",
               ),
               "all": Guide("En Agenda puedes consultar los talleres programados y su horario.", "agenda"),

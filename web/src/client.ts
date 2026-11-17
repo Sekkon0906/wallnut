@@ -55,8 +55,14 @@ export interface Workshop {
   enrolled: boolean
   attended: boolean
   can_manage: boolean
+  can_cancel: boolean
   can_issue_code: boolean
   is_facilitator: boolean
+  cancelled_at: string | null
+  schedule_revision: number
+  schedule_change: 'rescheduled' | 'cancelled' | null
+  schedule_notice: string | null
+  previous_starts_at: string | null
 }
 
 export interface AttendanceCode {

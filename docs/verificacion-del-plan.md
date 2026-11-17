@@ -1,6 +1,6 @@
 # Verificación del plan de Wallnut
 
-**Corte · versión 0.12.0**
+**Corte · versión 0.13.0**
 
 Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como punto de partida. Esta revisión separa la evidencia de desarrollo de las validaciones necesarias en el entorno institucional.
 
@@ -10,7 +10,7 @@ Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como
 |---|---|---|
 | Identidad y roles | Sesiones y funciones por rol, con verificación de identidad simulada en las pruebas. | Probar OAuth con el dominio, el cliente autorizado y cuentas reales de los tres roles. |
 | Comunidad y perfiles | Eventos, publicaciones con foto, perfiles voluntarios, reportes y moderación. Comunidad organiza el contenido por secciones. | Definir responsables y tiempos de moderación. Revisar si hace falta ordenar todas las fuentes en una sola lista. |
-| Talleres y evidencias | Convocatoria, selección, agenda, inscripción, asistencia, entrega, revisión y recompensa. | Probar el QR y el código manual entre dos equipos. Revisar cancelación de talleres y seguimiento de inscritos. |
+| Talleres y evidencias | Convocatoria, agenda, inscripción, asistencia, entrega, revisión y recompensa. Reprogramación y cancelación con motivo e historial. Filtro de talleres propios. | Probar el QR y el código manual entre dos equipos y verificar que los inscritos encuentran los avisos de agenda. |
 | Billetera y canje académico | Saldos y movimientos, transferencias internas, cupos docentes y canje con nota simulada. | Acordar con el tutor la elegibilidad y la procedencia de los Coins usados para canjear Points. |
 | Ardy y ranking | Editor 2D, armario, tienda, nueces y ranking voluntario. | Prototipo 3D y prueba de rendimiento en teléfonos del piloto. |
 | Eventos y torneos | Modalidad individual y por parejas, inscripciones, cuadro, pase directo, marcadores y campeón. | Validar un torneo real con organizador y estudiantes. Confirmar la disponibilidad del espacio por el canal institucional. |

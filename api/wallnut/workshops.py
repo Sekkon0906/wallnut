@@ -21,7 +21,8 @@ CODE_DURATION = timedelta(minutes=5)
 class WorkshopSchedule(BaseModel):
     starts_at: AwareDatetime
     ends_at: AwareDatetime
-    location: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=160)]
+    location: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=160,
+                                               pattern=r"^[^\x00]*$")]
     capacity: Annotated[int, Field(strict=True, ge=1, le=300)]
 
     @model_validator(mode="after")
@@ -42,7 +43,8 @@ def load_workshop(db, workshop_id, *, exclusive_lock=False):
     lock = "FOR UPDATE OF w" if exclusive_lock else "FOR SHARE OF w"
     row = db.execute(
         f"""
-        SELECT w.id, w.starts_at, w.ends_at, w.capacity, w.facilitator_id,
+        SELECT w.id, w.starts_at, w.ends_at, w.location, w.capacity, w.facilitator_id,
+               w.cancelled_at, w.schedule_revision,
                w.attendance_code_hash, w.attendance_code_expires_at, s.faculty_id
         FROM workshops w
         JOIN workshop_calls c ON c.id = w.call_id
@@ -68,16 +70,25 @@ def is_assigned_faculty(workshop, account):
     return account.role == "faculty" and workshop["faculty_id"] == account.id
 
 
+def require_active_workshop(workshop):
+    if workshop["cancelled_at"] is not None:
+        raise HTTPException(409, "Este taller fue cancelado.")
+
+
 def code_hash(code: str) -> bytes:
     return sha256(code.encode("utf-8")).digest()
 
 
 @router.get("/workshops")
-def list_workshops(account: CurrentAccount, db: Database):
+def list_workshops(account: CurrentAccount, db: Database, response: Response):
+    response.headers["Cache-Control"] = "private, no-store"
     return db.execute(
         """
         SELECT w.id, w.call_id, c.title, s.title AS course,
                a.display_name AS facilitator_name, w.starts_at, w.ends_at, w.location, w.capacity,
+               w.cancelled_at, w.schedule_revision,
+               CASE WHEN ch.kind = 'rescheduled' THEN ch.previous_schedule->>'starts_at' END AS previous_starts_at,
+               ch.kind AS schedule_change, ch.reason AS schedule_notice,
                (SELECT count(*) FROM workshop_enrollments e
                 WHERE e.workshop_id = w.id) AS enrolled_count,
                EXISTS (SELECT 1 FROM workshop_enrollments e
@@ -85,6 +96,7 @@ def list_workshops(account: CurrentAccount, db: Database):
                EXISTS (SELECT 1 FROM workshop_attendance t
                        WHERE t.workshop_id = w.id AND t.student_id = %(account)s) AS attended,
                (%(faculty)s AND s.faculty_id = %(account)s) AS can_manage,
+               ((%(faculty)s AND s.faculty_id = %(account)s) OR %(admin)s) AS can_cancel,
                ((%(faculty)s AND s.faculty_id = %(account)s)
                 OR (%(student)s AND w.facilitator_id = %(account)s)) AS can_issue_code,
                (%(student)s AND w.facilitator_id = %(account)s) AS is_facilitator
@@ -92,10 +104,11 @@ def list_workshops(account: CurrentAccount, db: Database):
         JOIN workshop_calls c ON c.id = w.call_id
         JOIN course_sections s ON s.id = c.course_id
         JOIN accounts a ON a.id = w.facilitator_id
-        ORDER BY w.ends_at <= now(), w.starts_at, w.id
+        LEFT JOIN workshop_agenda_changes ch ON ch.workshop_id = w.id AND ch.revision = w.schedule_revision
+        ORDER BY w.cancelled_at IS NOT NULL OR w.ends_at <= now(), w.starts_at, w.id
         """,
         {"account": account.id, "faculty": account.role == "faculty",
-         "student": account.role == "student"},
+         "student": account.role == "student", "admin": account.role == "admin"},
     ).fetchall()
 
 
@@ -137,6 +150,7 @@ def enroll_in_workshop(workshop_id: UUID, account: CurrentAccount, db: Database,
         raise HTTPException(403, "Las inscripciones son para estudiantes.")
     with db.transaction():
         workshop = load_workshop(db, workshop_id, exclusive_lock=True)
+        require_active_workshop(workshop)
         if is_facilitator(workshop, account):
             raise HTTPException(403, "Ya participas en este taller como tallerista.")
         enrollment = db.execute(
@@ -172,6 +186,7 @@ def cancel_enrollment(workshop_id: UUID, account: CurrentAccount, db: Database):
         raise HTTPException(403, "Las inscripciones son para estudiantes.")
     with db.transaction():
         workshop = load_workshop(db, workshop_id, exclusive_lock=True)
+        require_active_workshop(workshop)
         if database_time(db) >= workshop["starts_at"]:
             raise HTTPException(409, "La inscripción solo se puede cancelar antes del taller.")
         db.execute(
@@ -188,6 +203,7 @@ def issue_attendance_code(workshop_id: UUID, account: CurrentAccount, db: Databa
         workshop = load_workshop(db, workshop_id, exclusive_lock=True)
         if not (is_assigned_faculty(workshop, account) or is_facilitator(workshop, account)):
             raise HTTPException(403, "Solo el docente o el tallerista pueden generar el código.")
+        require_active_workshop(workshop)
         now = database_time(db)
         if not workshop["starts_at"] <= now < workshop["ends_at"]:
             raise HTTPException(409, "El código se genera durante el horario del taller.")
@@ -218,6 +234,7 @@ def check_in(workshop_id: UUID, body: AttendanceInput, account: CurrentAccount, 
         raise HTTPException(403, "El registro de asistencia es para estudiantes.")
     with db.transaction():
         workshop = load_workshop(db, workshop_id)
+        require_active_workshop(workshop)
         enrollment = db.execute(
             """
             SELECT t.checked_in_at FROM workshop_enrollments e
