@@ -94,7 +94,8 @@ def list_workshops(account: CurrentAccount, db: Database, response: Response):
         SELECT w.id, w.call_id, c.title, s.title AS course,
                a.display_name AS facilitator_name, w.starts_at, w.ends_at, w.location, w.capacity,
                w.cancelled_at, w.schedule_revision,
-               CASE WHEN ch.kind = 'rescheduled' THEN ch.previous_schedule->>'starts_at' END AS previous_starts_at,
+               CASE WHEN ch.kind = 'rescheduled' THEN (ch.previous_schedule->>'starts_at')::timestamptz
+               END AS previous_starts_at,
                ch.kind AS schedule_change, ch.reason AS schedule_notice,
                (SELECT count(*) FROM workshop_enrollments e
                 WHERE e.workshop_id = w.id) AS enrolled_count,

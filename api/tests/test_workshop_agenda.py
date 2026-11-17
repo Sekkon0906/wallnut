@@ -16,6 +16,11 @@ def test_reschedule_keeps_registrations_and_records_the_previous_time(client, wo
     faculty, course, facilitator, first, second = workshop_team
     workshop_id = open_workshop(client, faculty, course, facilitator, capacity=3)
     endpoint = f"/v1/workshops/{workshop_id}"
+    with connect() as db:
+        db.execute("""
+            UPDATE workshops SET starts_at = date_trunc('second', starts_at) + interval '0.123450 seconds'
+            WHERE id = %s
+            """, (workshop_id,))
     original = agenda_entry(client, first, workshop_id)
     for student in (first, second):
         assert client.put(f"{endpoint}/enrollment", headers=student).status_code == 201
