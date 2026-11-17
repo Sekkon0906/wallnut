@@ -1,16 +1,20 @@
 import os
 
+import psycopg
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from . import (
     ardi_help, ardy, ardy_nuts, campus, coin_payments, coin_shop, community, economy,
     events, evidence, grades, identity, pairing, profiles, social, tournaments, workshops,
 )
+from .database import connect, migration_files, pending_migrations
 
 
 def create_app(verify_identity=None):
-    api = FastAPI(title="Wallnut", version="0.11.0")
+    api = FastAPI(title="Wallnut", version="0.12.0")
     api.state.verify_identity = verify_identity if verify_identity is not None else identity.configured_verifier()
     allowed_origins = [
         origin.strip() for origin in os.environ.get("WEB_ORIGINS", "").split(",")
@@ -44,6 +48,22 @@ def create_app(verify_identity=None):
     @api.get("/health")
     def health():
         return {"status": "ok"}
+
+    @api.get("/v1/ready")
+    def readiness():
+        try:
+            with connect() as db:
+                ready = bool(migration_files()) and not pending_migrations(db)
+        except (KeyError, psycopg.Error):
+            ready = False
+        return JSONResponse(
+            {"status": "ready" if ready else "not_ready"},
+            status_code=200 if ready else 503,
+            headers={"Cache-Control": "no-store"},
+        )
+
+    if web_dist := os.environ.get("WEB_DIST_DIR"):
+        api.mount("/", StaticFiles(directory=web_dist, html=True), name="web")
 
     return api
 

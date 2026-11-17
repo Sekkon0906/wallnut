@@ -4,6 +4,8 @@ Una web instalable para la comunidad de la Universidad de Ibagué y un proyecto 
 
 El [plan de desarrollo y arquitectura](docs/plan-de-desarrollo-y-arquitectura.md) describe los módulos, permisos, datos y pruebas del piloto. Los APK y paquetes de cada hito están en [Releases](https://github.com/Sekkon0906/wallnut/releases).
 
+La [guía de despliegue del piloto](docs/despliegue-del-piloto.md) incluye el arranque con Compose y la restauración de prueba de PostgreSQL.
+
 ## Funciones disponibles
 
 - Acceso institucional con Google Workspace, cuentas únicas y permisos por rol.
@@ -152,7 +154,7 @@ Inicia primero la API y la web local como se explica arriba. Con un emulador And
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito11-demo.apk
+adb install -r Wallnut-Android-hito12-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

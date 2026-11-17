@@ -1,0 +1,45 @@
+name: wallnut-pilot
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: wallnut
+      POSTGRES_DB: wallnut_pilot
+      POSTGRES_PASSWORD: "${WALLNUT_DB_PASSWORD:?Define WALLNUT_DB_PASSWORD}"
+    volumes:
+      - pilot_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "wallnut", "-d", "wallnut_pilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+      args:
+        VITE_GOOGLE_CLIENT_ID: "${WALLNUT_GOOGLE_WEB_CLIENT_ID:?Define WALLNUT_GOOGLE_WEB_CLIENT_ID}"
+    environment:
+      PGHOST: postgres
+      PGDATABASE: wallnut_pilot
+      PGUSER: wallnut
+      PGPASSWORD: "${WALLNUT_DB_PASSWORD:?Define WALLNUT_DB_PASSWORD}"
+      GOOGLE_CLIENT_IDS: "${WALLNUT_GOOGLE_WEB_CLIENT_ID:?Define WALLNUT_GOOGLE_WEB_CLIENT_ID}"
+      WALLNUT_PUBLIC_ORIGIN: "${WALLNUT_PUBLIC_ORIGIN:?Define WALLNUT_PUBLIC_ORIGIN}"
+      WEB_ORIGINS: "${WALLNUT_ANDROID_ORIGIN:-}"
+    ports:
+      - "127.0.0.1:${WALLNUT_PILOT_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8080/v1/ready', timeout=6).close()"]
+      interval: 10s
+      timeout: 8s
+      retries: 6
+    restart: unless-stopped
+
+volumes:
+  pilot_data:

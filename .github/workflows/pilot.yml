@@ -1,0 +1,50 @@
+name: Verificación del piloto
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pilot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    env:
+      WALLNUT_PUBLIC_ORIGIN: https://wallnut.example.edu
+      WALLNUT_GOOGLE_WEB_CLIENT_ID: wallnut-pruebas.apps.googleusercontent.com
+      WALLNUT_DB_PASSWORD: wallnut-pruebas-locales
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Compilar y arrancar el piloto
+        run: docker compose -f compose.pilot.yaml up --build --wait --wait-timeout 120
+      - name: Verificar web, API y datos
+        run: |
+          curl --fail --silent http://127.0.0.1:8080/ | grep -q 'assets/'
+          curl --fail --silent http://127.0.0.1:8080/manifest.webmanifest | grep -q Wallnut
+          curl --fail --silent http://127.0.0.1:8080/v1/ready | grep -q '"status":"ready"'
+          code=$(curl --silent --output /dev/null --write-out '%{http_code}' --json '{"credential":"demo-student"}' http://127.0.0.1:8080/v1/session)
+          test "$code" = 401
+          docker compose -f compose.pilot.yaml exec -T app python -m wallnut.pilot --check
+      - name: Restaurar el respaldo en una base separada
+        run: |
+          docker compose -f compose.pilot.yaml exec -T postgres sh -ec '
+            original=$(psql -U wallnut -d wallnut_pilot -tAc "SELECT count(*) FROM migrations")
+            pg_dump -U wallnut -Fc -f /tmp/wallnut.dump wallnut_pilot
+            createdb -U wallnut wallnut_restore
+            pg_restore -U wallnut --exit-on-error -d wallnut_restore /tmp/wallnut.dump
+            restored=$(psql -U wallnut -d wallnut_restore -tAc "SELECT count(*) FROM migrations")
+            test "$original" -gt 0
+            test "$original" = "$restored"
+          '
+      - name: Mostrar estado si hay un fallo
+        if: failure()
+        run: docker compose -f compose.pilot.yaml logs --tail 80
+      - name: Cerrar el entorno de prueba
+        if: always()
+        run: docker compose -f compose.pilot.yaml down -v

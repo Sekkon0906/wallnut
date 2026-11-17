@@ -1,6 +1,6 @@
 # Verificación del plan de Wallnut
 
-**Corte · versión 0.11.0**
+**Corte · versión 0.12.0**
 
 Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como punto de partida. Esta revisión separa la evidencia de desarrollo de las validaciones necesarias en el entorno institucional.
 
@@ -15,7 +15,7 @@ Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como
 | Ardy y ranking | Editor 2D, armario, tienda, nueces y ranking voluntario. | Prototipo 3D y prueba de rendimiento en teléfonos del piloto. |
 | Eventos y torneos | Modalidad individual y por parejas, inscripciones, cuadro, pase directo, marcadores y campeón. | Validar un torneo real con organizador y estudiantes. Confirmar la disponibilidad del espacio por el canal institucional. |
 | Ayuda de Ardi | Temas frecuentes y preguntas en español con accesos según el rol. | Revisar las preguntas sin respuesta durante el piloto y ajustar las guías. |
-| Operación y evaluación | Pruebas de API, compilación web, APK de demostración e instalación local documentada. | Entorno HTTPS, pruebas en iPhone y Android físicos, respaldo, restauración y evaluación de uso. |
+| Operación y evaluación | Pruebas de API, APK de demostración, arranque con Compose, verificación del esquema y restauración de prueba. | Habilitar el entorno HTTPS institucional, probar iPhone y Android físicos, configurar los respaldos del entorno y evaluar su uso. |
 
 ## Alcance de torneos por parejas
 
@@ -24,6 +24,8 @@ El aforo se expresa en cupos para estudiantes. Ambos integrantes se inscriben en
 Antes de publicar, el organizador puede ver cuántos inscritos siguen sin pareja. Si publica con al menos dos parejas completas, los inscritos que siguen solos quedan fuera del cuadro. Si alguien libera su cupo antes del cierre, se retiran su pareja y las invitaciones vinculadas a esa inscripción.
 
 ## Validación institucional
+
+La [guía de despliegue](despliegue-del-piloto.md) reúne la configuración, el arranque y el ensayo de recuperación de la base.
 
 Una ronda de aceptación requiere un entorno HTTPS, una cuenta de cada rol y al menos un iPhone y un Android físicos. Se propone registrar el dispositivo, la versión, el resultado esperado y el resultado observado para cada recorrido.
 
