@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { CalendarDays, Camera, ClipboardCheck, Clock, MapPin, QrCode, Target, UserRound, Users, X } from '@lucide/vue'
+import { CalendarDays, Camera, ClipboardCheck, Clock, ListChecks, MapPin, QrCode, Target, UserRound, Users, X } from '@lucide/vue'
 import QrScanner from './QrScanner.vue'
 import WorkshopEconomyView from './WorkshopEconomyView.vue'
 import WorkshopEvidence from './WorkshopEvidence.vue'
+import WorkshopParticipants from './WorkshopParticipants.vue'
 import { api, errorText, RequestError, type Attendance, type AttendanceCode, type Workshop } from './client'
 
 const props = defineProps<{ token: string; isStudent: boolean }>()
 const emit = defineEmits<{ expired: [] }>()
-type Dialog = 'code' | 'check-in' | 'evidence' | 'economy' | 'rescheduled' | 'cancelled'
+type Dialog = 'code' | 'check-in' | 'evidence' | 'economy' | 'rescheduled' | 'cancelled' | 'participants'
 const workshops = ref<Workshop[]>([])
 const filters = [
   { id: 'all', label: 'Todos' },
@@ -254,32 +255,36 @@ async function checkIn(value: string) {
               <template v-else>{{ workshop.enrolled_count }} de {{ workshop.capacity }} cupos ocupados</template>
             </li>
           </ul>
-          <div v-if="!workshop.cancelled_at" class="workshop-actions">
-            <template v-if="isStudent && !workshop.is_facilitator">
-              <button v-if="!started(workshop) && workshop.enrolled" type="button" class="button quiet"
-                :disabled="busy || loading" @click="changeEnrollment(workshop)">Cancelar inscripción</button>
-              <button v-else-if="!started(workshop) && workshop.enrolled_count < workshop.capacity" type="button"
-                class="button primary" :disabled="busy || loading" @click="changeEnrollment(workshop)">Inscribirme</button>
-              <p v-else-if="!started(workshop)" class="state-note">Sin cupos disponibles.</p>
-              <button v-if="workshop.enrolled && !workshop.attended && started(workshop) && !ended(workshop)"
-                type="button" class="button primary" :disabled="busy" @click="openDialog(workshop, 'check-in')">
-                <QrCode :size="18" aria-hidden="true" /> Registrar asistencia
+          <div v-if="!workshop.cancelled_at || workshop.can_manage" class="workshop-actions">
+            <button v-if="workshop.can_manage" type="button" class="button secondary" :disabled="busy"
+              @click="openDialog(workshop, 'participants')"><ListChecks :size="18" aria-hidden="true" /> Ver inscritos</button>
+            <template v-if="!workshop.cancelled_at">
+              <template v-if="isStudent && !workshop.is_facilitator">
+                <button v-if="!started(workshop) && workshop.enrolled" type="button" class="button quiet"
+                  :disabled="busy || loading" @click="changeEnrollment(workshop)">Cancelar inscripción</button>
+                <button v-else-if="!started(workshop) && workshop.enrolled_count < workshop.capacity" type="button"
+                  class="button primary" :disabled="busy || loading" @click="changeEnrollment(workshop)">Inscribirme</button>
+                <p v-else-if="!started(workshop)" class="state-note">Sin cupos disponibles.</p>
+                <button v-if="workshop.enrolled && !workshop.attended && started(workshop) && !ended(workshop)"
+                  type="button" class="button primary" :disabled="busy" @click="openDialog(workshop, 'check-in')">
+                  <QrCode :size="18" aria-hidden="true" /> Registrar asistencia
+                </button>
+              </template>
+              <button v-if="workshop.can_issue_code && started(workshop) && !ended(workshop)" type="button" class="button secondary"
+                :disabled="busy" @click="openDialog(workshop, 'code')"><QrCode :size="18" aria-hidden="true" /> QR y código</button>
+              <button v-if="workshop.attended || workshop.can_manage || (workshop.is_facilitator && started(workshop))"
+                type="button" class="button secondary" :disabled="busy" @click="openDialog(workshop, 'evidence')">
+                <ClipboardCheck :size="18" aria-hidden="true" /> {{ workshop.can_manage ? 'Revisar evidencias' : 'Mi evidencia' }}
               </button>
+              <button type="button" class="button quiet" :disabled="busy" @click="openDialog(workshop, 'economy')">
+                <Target :size="18" aria-hidden="true" />
+                {{ workshop.can_manage ? 'Configurar recompensas' : 'Ver recompensas' }}
+              </button>
+              <button v-if="!started(workshop) && (workshop.can_manage || workshop.is_facilitator)" type="button"
+                class="button secondary" :disabled="busy || loading" @click="openDialog(workshop, 'rescheduled')">Reprogramar</button>
+              <button v-if="!started(workshop) && workshop.can_cancel" type="button" class="button quiet"
+                :disabled="busy || loading" @click="openDialog(workshop, 'cancelled')">Cancelar taller</button>
             </template>
-            <button v-if="workshop.can_issue_code && started(workshop) && !ended(workshop)" type="button" class="button secondary"
-              :disabled="busy" @click="openDialog(workshop, 'code')"><QrCode :size="18" aria-hidden="true" /> QR y código</button>
-            <button v-if="workshop.attended || workshop.can_manage || (workshop.is_facilitator && started(workshop))"
-              type="button" class="button secondary" :disabled="busy" @click="openDialog(workshop, 'evidence')">
-              <ClipboardCheck :size="18" aria-hidden="true" /> {{ workshop.can_manage ? 'Revisar evidencias' : 'Mi evidencia' }}
-            </button>
-            <button type="button" class="button quiet" :disabled="busy" @click="openDialog(workshop, 'economy')">
-              <Target :size="18" aria-hidden="true" />
-              {{ workshop.can_manage ? 'Configurar recompensas' : 'Ver recompensas' }}
-            </button>
-            <button v-if="!started(workshop) && (workshop.can_manage || workshop.is_facilitator)" type="button"
-              class="button secondary" :disabled="busy || loading" @click="openDialog(workshop, 'rescheduled')">Reprogramar</button>
-            <button v-if="!started(workshop) && workshop.can_cancel" type="button" class="button quiet"
-              :disabled="busy || loading" @click="openDialog(workshop, 'cancelled')">Cancelar taller</button>
           </div>
         </div>
       </article>
@@ -290,6 +295,7 @@ async function checkIn(value: string) {
       <div class="dialog-head">
         <h2 id="workshop-dialog-title">{{ dialog === 'code' ? 'QR y código de asistencia' : dialog === 'check-in'
           ? 'Registrar asistencia' : dialog === 'economy' ? 'Recompensas del taller'
+            : dialog === 'participants' ? 'Inscritos al taller'
             : dialog === 'rescheduled' ? 'Reprogramar taller' : dialog === 'cancelled' ? 'Cancelar taller'
             : selection.can_manage ? 'Revisar evidencias' : 'Mi evidencia' }}</h2>
         <button type="button" class="icon-button" aria-label="Cerrar" :disabled="busy" @click="modal?.close()">
@@ -328,6 +334,8 @@ async function checkIn(value: string) {
         </form>
       </section>
       <WorkshopEconomyView v-else-if="dialog === 'economy'" :workshop="selection" :token="token"
+        @expired="emit('expired')" />
+      <WorkshopParticipants v-else-if="dialog === 'participants'" :workshop="selection" :token="token"
         @expired="emit('expired')" />
       <form v-else-if="dialog === 'rescheduled' || dialog === 'cancelled'" class="form-stack" @submit.prevent="saveAgendaChange">
         <fieldset class="form-stack agenda-edit" :disabled="busy">

@@ -1,7 +1,7 @@
 from datetime import timedelta
 from hashlib import sha256
 from secrets import choice
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Response
@@ -37,6 +37,13 @@ class AttendanceInput(BaseModel):
         str, StringConstraints(strip_whitespace=True, to_upper=True, min_length=CODE_LENGTH,
                                max_length=CODE_LENGTH)
     ]
+
+
+class WorkshopParticipant(BaseModel):
+    student_id: UUID
+    display_name: str
+    checked_in_at: AwareDatetime | None
+    evidence_status: Literal["submitted", "returned", "approved"] | None
 
 
 def load_workshop(db, workshop_id, *, exclusive_lock=False):
@@ -110,6 +117,28 @@ def list_workshops(account: CurrentAccount, db: Database, response: Response):
         {"account": account.id, "faculty": account.role == "faculty",
          "student": account.role == "student", "admin": account.role == "admin"},
     ).fetchall()
+
+
+@router.get("/workshops/{workshop_id}/participants", response_model=list[WorkshopParticipant])
+def list_workshop_participants(workshop_id: UUID, account: CurrentAccount, db: Database, response: Response):
+    with db.transaction():
+        workshop = load_workshop(db, workshop_id)
+        if not is_assigned_faculty(workshop, account):
+            raise HTTPException(403, "Solo el docente asignado puede consultar la lista de inscritos.")
+        participants = db.execute(
+            """
+            SELECT e.student_id, a.display_name, t.checked_in_at, v.status AS evidence_status
+            FROM workshop_enrollments e
+            JOIN accounts a ON a.id = e.student_id
+            LEFT JOIN workshop_attendance t USING (workshop_id, student_id)
+            LEFT JOIN workshop_evidence v ON (v.workshop_id, v.student_id) = (e.workshop_id, e.student_id)
+            WHERE e.workshop_id = %s
+            ORDER BY lower(a.display_name), a.display_name, e.student_id
+            """,
+            (workshop_id,),
+        ).fetchall()
+    response.headers["Cache-Control"] = "private, no-store"
+    return participants
 
 
 @router.post("/workshop-calls/{call_id}/workshop", status_code=201)
