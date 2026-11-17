@@ -21,6 +21,13 @@ export interface ArdyProfile {
   career: string | null
 }
 
+export interface CampusProfile {
+  display_name: string
+  bio: string
+  career: string | null
+  avatar: Avatar
+}
+
 export interface ArdyItem {
   id: string
   name: string

@@ -25,6 +25,7 @@ El [plan de desarrollo y arquitectura](docs/plan-de-desarrollo-y-arquitectura.md
 - La tienda ofrece nueces sorpresa que se abren con tres toques y desbloquean prendas para el armario de Ardy.
 - La tarjeta virtual permite cobrar y pagar Ardi Coins entre estudiantes por QR o código manual. El color se guarda en ese navegador o app. Las transacciones aparecen en ambas billeteras.
 - En Comunidad se publican talleres, encuentros y torneos de estudiantes, docentes y administración. Los estudiantes pueden inscribirse o liberar su cupo antes del inicio.
+- Cada estudiante puede crear un perfil del campus con su nombre, presentación y Ardy. El perfil es privado al empezar. Si se activa, otros usuarios de Wallnut pueden abrirlo desde los eventos de ese estudiante. La carrera se muestra solo si el titular lo elige.
 
 Los **Ardi Coins** son unidades de uso interno sin valor monetario. El servidor administra los saldos y registra las operaciones en PostgreSQL. Los **Ardi Points** mantienen su origen académico y sus propias reglas de canje.
 
@@ -111,13 +112,19 @@ Para probar tus propias reglas, usa **Guardar regla** y **Guardar nota** en la v
 
 La colección del piloto tiene ocho prendas, dos por rareza, y cada nuez desbloquea una diferente. Las probabilidades iniciales son 60 % Normal, 25 % Especial, 12 % Épica y 3 % Legendaria. Cuando se completan las prendas de una rareza, su peso se excluye y se recalculan las proporciones de las restantes. La tienda muestra las probabilidades vigentes antes de comprar.
 
+### Probar los perfiles del campus
+
+1. Como María, abre **Mi Ardy → Mi perfil del campus**. Escribe una presentación. Activa **Mostrar mi perfil en el campus** y guarda. Puedes elegir si compartes la carrera que guardaste en Mi Ardy.
+2. Publica un evento desde **Comunidad**. Entra en otra pestaña como Mateo y abre el perfil desde el nombre de María en la tarjeta del evento.
+3. Desactiva la visibilidad y guarda como María. Al volver a cargar los eventos, Mateo vuelve a ver el nombre del organizador sin acceso al perfil.
+
 ## Probar el APK de demostración
 
 Inicia primero la API y la web local como se explica arriba. Con un emulador Android abierto o un teléfono de desarrollo conectado por USB:
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito7-demo.apk
+adb install -r Wallnut-Android-hito8-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

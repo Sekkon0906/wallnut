@@ -4,8 +4,9 @@ import { api, errorText, RequestError } from './client'
 import { avatarControls, careerLooks, defaultAvatar, rarityLabels, type ArdyItem, type ArdyProfile } from './ardy'
 import ArdyPortrait from './ArdyPortrait.vue'
 import NutShop from './NutShop.vue'
+import CampusProfileEditor from './CampusProfileEditor.vue'
 
-const props = defineProps<{ token: string }>()
+const props = defineProps<{ token: string; displayName: string }>()
 const emit = defineEmits<{ expired: [] }>()
 const profile = ref<ArdyProfile>()
 const avatar = ref({ ...defaultAvatar })
@@ -140,6 +141,7 @@ onMounted(() => run(false))
         </div>
       </fieldset>
     </form>
+    <CampusProfileEditor v-if="profile" :token="token" :display-name="displayName" :ardy="profile" @expired="emit('expired')" />
     <section v-if="profile" class="wallet-section" aria-labelledby="shop-heading">
       <h2 id="shop-heading">Tienda de Ardy</h2>
       <NutShop :token="token" :avatar="avatar" :shop-revision="shopRevision"

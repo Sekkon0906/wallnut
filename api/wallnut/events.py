@@ -11,10 +11,12 @@ router = APIRouter(prefix="/campus-events", tags=["Eventos del campus"])
 EVENTS = """
     SELECT e.*, a.display_name AS organizer, e.organizer_id = %(viewer)s AS mine,
            e.starts_at > clock_timestamp() AS upcoming,
+           (a.role = 'student' AND coalesce(p.visible, false)) AS organizer_profile_visible,
            (SELECT count(*) FROM campus_event_enrollments j WHERE j.event_id = e.id) AS attendees,
            EXISTS (SELECT 1 FROM campus_event_enrollments j
                    WHERE j.event_id = e.id AND j.student_id = %(viewer)s) AS enrolled
     FROM campus_events e JOIN accounts a ON a.id = e.organizer_id
+    LEFT JOIN campus_profiles p ON p.student_id = e.organizer_id
 """
 
 

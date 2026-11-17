@@ -5,12 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from . import (
     ardy, ardy_nuts, campus, coin_payments, coin_shop, community, economy,
-    events, evidence, grades, identity, workshops,
+    events, evidence, grades, identity, profiles, workshops,
 )
 
 
 def create_app(verify_identity=None):
-    api = FastAPI(title="Wallnut", version="0.7.0")
+    api = FastAPI(title="Wallnut", version="0.8.0")
     api.state.verify_identity = verify_identity if verify_identity is not None else identity.configured_verifier()
     allowed_origins = [
         origin.strip() for origin in os.environ.get("WEB_ORIGINS", "").split(",")
@@ -35,6 +35,7 @@ def create_app(verify_identity=None):
     api.include_router(coin_payments.router, prefix="/v1")
     api.include_router(coin_shop.router, prefix="/v1")
     api.include_router(events.router, prefix="/v1")
+    api.include_router(profiles.router, prefix="/v1")
 
     @api.get("/health")
     def health():

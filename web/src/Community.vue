@@ -315,7 +315,8 @@ async function confirmEnrollment() {
       @back="view = 'groups'" @expired="emit('expired')" />
     <ParticipationRanking v-else-if="view === 'ranking'" :token="token" :is-student="isStudent"
       @edit="view = 'ardy'" @expired="emit('expired')" />
-    <MyArdyView v-else-if="view === 'ardy' && isStudent" :token="token" @expired="emit('expired')" />
+    <MyArdyView v-else-if="view === 'ardy' && isStudent" :token="token" :display-name="account.display_name"
+      @expired="emit('expired')" />
     <Administration v-else-if="isAdmin" :token="token" :account-id="account.id" :courses="courses"
       @changed="loadCourses" @expired="emit('expired')" />
     <section v-else class="groups">

@@ -2,6 +2,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { CalendarDays, MapPin, Plus } from '@lucide/vue'
 import { api, errorText, RequestError, type Role } from './client'
+import CampusProfileDialog from './CampusProfileDialog.vue'
 
 const props = defineProps<{ token: string; role: Role }>()
 const emit = defineEmits<{ expired: [] }>()
@@ -10,6 +11,7 @@ type Category = keyof typeof categories
 type EventCard = {
   id: string; title: string; description: string; category: Category; starts_at: string
   location: string; capacity: number; organizer: string; institutional: boolean; cancelled: boolean
+  organizer_id: string; organizer_profile_visible: boolean
   mine: boolean; upcoming: boolean; attendees: number; enrolled: boolean
 }
 const defaults = { title: '', description: '', location: '', start: '', category: 'tournament' as Category, capacity: 16 }
@@ -21,6 +23,7 @@ const busy = ref(false)
 const problem = ref('')
 const notice = ref('')
 const cancelling = ref('')
+const openedProfile = ref('')
 const format = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Bogota' })
 let pending: { id: string; fingerprint: string } | undefined
 
@@ -114,7 +117,12 @@ onMounted(() => perform(fetchEvents))
           <h3>{{ item.title }}</h3>
           <p>{{ item.description }}</p>
           <span class="faculty-label"><MapPin :size="16" aria-hidden="true" /> {{ item.location }} · {{ format.format(new Date(item.starts_at)) }}</span>
-          <p>{{ item.organizer }} · {{ item.attendees }} de {{ item.capacity }} cupos ocupados</p>
+          <p>
+            <button v-if="item.organizer_profile_visible" type="button" class="organizer-profile-link"
+              :aria-label="`Ver perfil de ${item.organizer}`" @click="openedProfile = item.organizer_id">{{ item.organizer }}</button>
+            <template v-else>{{ item.organizer }}</template>
+            · {{ item.attendees }} de {{ item.capacity }} cupos ocupados
+          </p>
           <div v-if="item.upcoming && !item.cancelled" class="workshop-actions">
             <button v-if="role === 'student'" class="button secondary" type="button"
               :disabled="busy || (!item.enrolled && item.attendees >= item.capacity)" @click="update(item)">
@@ -131,5 +139,11 @@ onMounted(() => perform(fetchEvents))
     </div>
     <button v-if="more || problem" class="button secondary show-more" :disabled="busy"
       @click="perform(() => fetchEvents(!problem))">{{ problem ? 'Actualizar eventos' : 'Ver más eventos' }}</button>
+    <CampusProfileDialog v-if="openedProfile" :token="token" :student-id="openedProfile"
+      @close="openedProfile = ''" @expired="emit('expired')" />
   </section>
 </template>
+
+<style scoped>
+.organizer-profile-link { color: var(--blue); background: none; border: 0; padding: .25rem 0; font-weight: 700; text-decoration: underline; text-underline-offset: .15em; }
+</style>
