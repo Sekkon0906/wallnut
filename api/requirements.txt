@@ -3,4 +3,5 @@ google-auth[requests]>=2.40,<3
 Pillow>=12.3,<14
 psycopg[binary]>=3.2,<4
 python-multipart>=0.0.33,<1
+tzdata
 uvicorn>=0.34,<1

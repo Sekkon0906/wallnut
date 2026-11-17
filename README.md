@@ -161,7 +161,7 @@ Inicia primero la API y la web local como se explica arriba. Con un emulador And
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito14-demo.apk
+adb install -r Wallnut-Android-hito15-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

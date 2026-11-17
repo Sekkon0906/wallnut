@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
-import { ArrowUpRight, BookOpen, CalendarDays, ChevronRight, GraduationCap, Megaphone, MessageCircle, Plus, Trophy, UserRound, Wallet as WalletIcon, X } from '@lucide/vue'
+import { ArrowUpRight, BookOpen, CalendarDays, ChartColumn, ChevronRight, GraduationCap, Megaphone, MessageCircle, Plus, Trophy, UserRound, Wallet as WalletIcon, X } from '@lucide/vue'
 import Administration from './Administration.vue'
 import FacultyBudgetView from './FacultyBudgetView.vue'
 import GradeRedemptionView from './GradeRedemptionView.vue'
@@ -8,6 +8,7 @@ import WorkshopAgenda from './WorkshopAgenda.vue'
 import WalletView from './WalletView.vue'
 import MyArdyView from './MyArdyView.vue'
 import ParticipationRanking from './ParticipationRanking.vue'
+import PilotMetricsView from './PilotMetricsView.vue'
 import CampusEvents from './CampusEvents.vue'
 import CampusPosts from './CampusPosts.vue'
 import ArdiHelp from './ArdiHelp.vue'
@@ -34,7 +35,7 @@ const sections = [
 ] as const
 const section = ref<typeof sections[number]['id']>('all')
 const helpOpen = ref(false)
-const view = ref<'community' | 'groups' | 'agenda' | 'wallet' | 'grade' | 'ardy' | 'ranking'>(
+const view = ref<'community' | 'groups' | 'agenda' | 'wallet' | 'grade' | 'ardy' | 'ranking' | 'metrics'>(
   props.account.role === 'admin' ? 'groups' : 'community',
 )
 const gradeCourse = ref<Course>()
@@ -264,6 +265,9 @@ async function confirmEnrollment() {
       <button v-if="isStudent" class="view-link" :aria-current="view === 'ardy' ? 'page' : undefined" @click="view = 'ardy'">
         <UserRound :size="19" aria-hidden="true" /> Mi Ardy
       </button>
+      <button v-if="isAdmin" class="view-link" :aria-current="view === 'metrics' ? 'page' : undefined" @click="view = 'metrics'">
+        <ChartColumn :size="19" aria-hidden="true" /> Evaluación
+      </button>
     </nav>
     <div class="dashboard-help">
       <button class="button secondary" type="button" aria-haspopup="dialog" @click="helpOpen = true">
@@ -354,6 +358,7 @@ async function confirmEnrollment() {
       @edit="view = 'ardy'" @expired="emit('expired')" />
     <MyArdyView v-else-if="view === 'ardy' && isStudent" :token="token" :display-name="account.display_name"
       @expired="emit('expired')" />
+    <PilotMetricsView v-else-if="view === 'metrics' && isAdmin" :token="token" @expired="emit('expired')" />
     <Administration v-else-if="isAdmin" :token="token" :account-id="account.id" :courses="courses"
       @changed="loadCourses" @expired="emit('expired')" />
     <section v-else class="groups">

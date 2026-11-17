@@ -1,6 +1,6 @@
 # Verificación del plan de Wallnut
 
-**Corte · versión 0.14.0**
+**Corte · versión 0.15.0**
 
 Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como punto de partida. Esta revisión separa la evidencia de desarrollo de las validaciones necesarias en el entorno institucional.
 
@@ -15,7 +15,7 @@ Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como
 | Ardy y ranking | Editor con vistas 2D y 3D, armario, tienda, nueces y ranking voluntario. | Probar interacción y rendimiento en iPhone y Android físicos. |
 | Eventos y torneos | Modalidad individual y por parejas, inscripciones, cuadro, pase directo, marcadores y campeón. | Validar un torneo real con organizador y estudiantes. Confirmar la disponibilidad del espacio por el canal institucional. |
 | Ayuda de Ardi | Temas frecuentes y preguntas en español con accesos según el rol. | Revisar las preguntas sin respuesta durante el piloto y ajustar las guías. |
-| Operación y evaluación | Pruebas de API, APK de demostración, arranque con Compose, verificación del esquema y restauración de prueba. | Habilitar el entorno HTTPS institucional, probar iPhone y Android físicos, configurar los respaldos del entorno y evaluar su uso. |
+| Operación y evaluación | Pruebas de API, APK de demostración, arranque con Compose, restauración de prueba e informe semanal exportable. | Habilitar el entorno HTTPS institucional, probar iPhone y Android físicos, configurar respaldos y acordar metas y muestra con el tutor. |
 
 ## Alcance de torneos por parejas
 
@@ -26,6 +26,14 @@ Antes de publicar, el organizador puede ver cuántos inscritos siguen sin pareja
 ## Vista 3D de Ardy
 
 El editor carga bajo demanda un modelo construido por piezas con Three.js. Usa los mismos datos del retrato 2D y del armario. La escena se vuelve a dibujar al editar, girar o cambiar el tamaño de la vista. Si el navegador carece de WebGL 2 o se pierde el contexto gráfico, el editor recupera el retrato 2D y conserva la edición en curso.
+
+## Informe de evaluación
+
+Administración puede consultar 4, 8 o 12 semanas y exportar el mismo informe en CSV. La semana empieza el lunes en hora de Colombia. Las cifras corresponden a inscripciones y operaciones, de modo que un estudiante puede contar en varios talleres. El CSV incluye la zona horaria, la fecha de corte y la hora de generación. Su contenido se limita a fechas y totales.
+
+- **Talleres**. Se agrupan por fecha de inicio. Entran los talleres finalizados al corte y se excluyen los cancelados. Las asistencias, las evidencias entregadas y las aprobaciones corresponden a las mismas inscripciones. Se recoge el estado de las evidencias al generar el informe, incluidas las revisiones posteriores al corte. Las entregas del tallerista se evalúan por separado.
+- **Eventos**. Se agrupan por inicio. Entran los eventos que ya iniciaron al corte, con sus inscripciones. Se excluyen los cancelados.
+- **Billetera y armario**. Se cuentan premios, conversiones, pagos confirmados, canjes académicos aprobados y compras por fecha de la operación. Las nueces se agrupan por compra y el estado de apertura corresponde al momento de generar el informe.
 
 ## Validación institucional
 
@@ -39,5 +47,6 @@ Una ronda de aceptación requiere un entorno HTTPS, una cuenta de cada rol y al 
 4. **Economía**. Pagar Coins por QR y repetir la misma solicitud. Solicitar un canje con nota simulada. Comprobar saldos, reserva, aprobación o devolución con motivo.
 5. **Comunidad**. Reportar y moderar una foto. Inscribir y confirmar dos parejas. Publicar el cuadro, cerrar inscripciones y registrar el resultado.
 6. **Ardy**. Cambiar de 2D a 3D, girar con un dedo y con los botones, probar una prenda del armario y guardar la apariencia. Volver a 2D y comprobar que conserva la apariencia guardada.
+7. **Evaluación**. Comparar el recorrido de un taller de prueba con los totales para sus fechas. Exportar el CSV desde Administración y comprobar que las cuentas de estudiante y docente carecen de acceso al informe.
 
 Para el informe de grado, conservar evidencia de estos recorridos con cuentas de prueba y resultados agregados. Antes de usar datos institucionales, acordar el responsable operativo y la retención de evidencias.
