@@ -1,6 +1,6 @@
 # Verificación del plan de Wallnut
 
-**Corte · versión 0.13.0**
+**Corte · versión 0.14.0**
 
 Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como punto de partida. Esta revisión separa la evidencia de desarrollo de las validaciones necesarias en el entorno institucional.
 
@@ -12,7 +12,7 @@ Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como
 | Comunidad y perfiles | Eventos, publicaciones con foto, perfiles voluntarios, reportes y moderación. Comunidad organiza el contenido por secciones. | Definir responsables y tiempos de moderación. Revisar si hace falta ordenar todas las fuentes en una sola lista. |
 | Talleres y evidencias | Convocatoria, agenda, inscripción, asistencia, entrega, revisión y recompensa. Reprogramación y cancelación con motivo e historial. Filtro de talleres propios. | Probar el QR y el código manual entre dos equipos y verificar que los inscritos encuentran los avisos de agenda. |
 | Billetera y canje académico | Saldos y movimientos, transferencias internas, cupos docentes y canje con nota simulada. | Acordar con el tutor la elegibilidad y la procedencia de los Coins usados para canjear Points. |
-| Ardy y ranking | Editor 2D, armario, tienda, nueces y ranking voluntario. | Prototipo 3D y prueba de rendimiento en teléfonos del piloto. |
+| Ardy y ranking | Editor con vistas 2D y 3D, armario, tienda, nueces y ranking voluntario. | Probar interacción y rendimiento en iPhone y Android físicos. |
 | Eventos y torneos | Modalidad individual y por parejas, inscripciones, cuadro, pase directo, marcadores y campeón. | Validar un torneo real con organizador y estudiantes. Confirmar la disponibilidad del espacio por el canal institucional. |
 | Ayuda de Ardi | Temas frecuentes y preguntas en español con accesos según el rol. | Revisar las preguntas sin respuesta durante el piloto y ajustar las guías. |
 | Operación y evaluación | Pruebas de API, APK de demostración, arranque con Compose, verificación del esquema y restauración de prueba. | Habilitar el entorno HTTPS institucional, probar iPhone y Android físicos, configurar los respaldos del entorno y evaluar su uso. |
@@ -22,6 +22,10 @@ Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como
 El aforo se expresa en cupos para estudiantes. Ambos integrantes se inscriben en el evento. Uno envía la invitación y el otro la acepta. Solo los inscritos ven a las personas elegibles y las invitaciones se limitan a sus destinatarios. Cuando el organizador publica el cuadro se cierra el registro. Las parejas confirmadas quedan en la lista de participantes del cuadro, que avanza a ambos integrantes con cada victoria.
 
 Antes de publicar, el organizador puede ver cuántos inscritos siguen sin pareja. Si publica con al menos dos parejas completas, los inscritos que siguen solos quedan fuera del cuadro. Si alguien libera su cupo antes del cierre, se retiran su pareja y las invitaciones vinculadas a esa inscripción.
+
+## Vista 3D de Ardy
+
+El editor carga bajo demanda un modelo construido por piezas con Three.js. Usa los mismos datos del retrato 2D y del armario. La escena se vuelve a dibujar al editar, girar o cambiar el tamaño de la vista. Si el navegador carece de WebGL 2 o se pierde el contexto gráfico, el editor recupera el retrato 2D y conserva la edición en curso.
 
 ## Validación institucional
 
@@ -34,5 +38,6 @@ Una ronda de aceptación requiere un entorno HTTPS, una cuenta de cada rol y al 
 3. **Taller**. Publicar, seleccionar tallerista, inscribir, registrar una asistencia por QR entre dos dispositivos y otra por código manual. Subir evidencia y acreditar una sola recompensa.
 4. **Economía**. Pagar Coins por QR y repetir la misma solicitud. Solicitar un canje con nota simulada. Comprobar saldos, reserva, aprobación o devolución con motivo.
 5. **Comunidad**. Reportar y moderar una foto. Inscribir y confirmar dos parejas. Publicar el cuadro, cerrar inscripciones y registrar el resultado.
+6. **Ardy**. Cambiar de 2D a 3D, girar con un dedo y con los botones, probar una prenda del armario y guardar la apariencia. Volver a 2D y comprobar que conserva la apariencia guardada.
 
 Para el informe de grado, conservar evidencia de estos recorridos con cuentas de prueba y resultados agregados. Antes de usar datos institucionales, acordar el responsable operativo y la retención de evidencias.

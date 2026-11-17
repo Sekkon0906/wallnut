@@ -71,19 +71,19 @@ export const avatarControls = [
   { key: 'accessory', label: 'Accesorio', options: [['none', 'Sin accesorio'], ['chain', 'Cadena'], ['backpack', 'Mochila']] },
 ] as const
 
-const palettes: Record<string, [string, string, string]> = {
+export const palettes: Record<string, [string, string, string]> = {
   amber: ['#ce7436', '#a54d22', '#ffe0ae'],
   chestnut: ['#975642', '#6a342d', '#ffddbc'],
   gray: ['#8994a8', '#5c627c', '#f5e9e1'],
   cream: ['#e7bb87', '#b57754', '#fff2dd'],
 }
-const jacketColors: Record<string, [string, string]> = {
+export const jacketColors: Record<string, [string, string]> = {
   purple_jacket: ['#7142a6', '#f0bd62'],
   reef_jacket: ['#136c75', '#ffa791'],
   nebula_jacket: ['#442468', '#ddacff'],
   solar_jacket: ['#51232d', '#ffca58'],
 }
-const capColors: Record<string, [string, string, string]> = {
+export const capColors: Record<string, [string, string, string]> = {
   cap: ['#2457a8', '#3c7ed2', '#d7ecfd'],
   gold_cap: ['#a16314', '#e9ac39', '#fff0a7'],
   rust_cap: ['#9c4135', '#ce6b4a', '#faccac'],

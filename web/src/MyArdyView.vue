@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, defineAsyncComponent, h, nextTick, onMounted, ref } from 'vue'
 import { api, errorText, RequestError } from './client'
 import { avatarControls, careerLooks, defaultAvatar, rarityLabels, type ArdyItem, type ArdyProfile } from './ardy'
 import ArdyPortrait from './ArdyPortrait.vue'
@@ -8,6 +8,19 @@ import CampusProfileEditor from './CampusProfileEditor.vue'
 
 const props = defineProps<{ token: string; displayName: string }>()
 const emit = defineEmits<{ expired: [] }>()
+const ArdyModelPreview = defineAsyncComponent({
+  loader: async () => {
+    try {
+      return (await import('./ArdyModelPreview.vue')).default
+    } catch {
+      recoverPortrait()
+      return ArdyPortrait
+    }
+  },
+  loadingComponent: () => h('p', { role: 'status' }, 'Cargando la vista 3D…'),
+})
+const previewMode = ref<'2D' | '3D'>('2D')
+const previewUnavailable = ref(false)
 const profile = ref<ArdyProfile>()
 const avatar = ref({ ...defaultAvatar })
 const visible = ref(false)
@@ -93,6 +106,12 @@ function applyLook(event: Event) {
   if (look) avatar.value = { ...defaultAvatar, ...look.details }
   select.value = ''
 }
+
+function recoverPortrait() {
+  previewMode.value = '2D'
+  previewUnavailable.value = true
+}
+
 onMounted(() => run(false))
 </script>
 
@@ -105,8 +124,16 @@ onMounted(() => run(false))
     <button v-if="problem && !profile" class="button secondary" @click="run(false)">Reintentar</button>
     <form v-if="profile" class="ardy-editor" @submit.prevent="run(true)">
       <figure class="ardy-preview">
-        <ArdyPortrait :avatar="avatar" />
-        <figcaption>Vista previa de tu Ardy</figcaption>
+        <div class="ardy-preview-modes" role="group" aria-label="Vista previa de tu Ardy">
+          <button v-for="mode in (['2D', '3D'] as const)" :key="mode" class="button" type="button"
+            :class="previewMode === mode ? 'primary' : 'secondary'" :aria-pressed="previewMode === mode"
+            :disabled="mode === '3D' && previewUnavailable" @click="previewMode = mode">
+            {{ mode }}
+          </button>
+        </div>
+        <ArdyModelPreview v-if="previewMode === '3D'" :avatar="avatar" @unavailable="recoverPortrait" />
+        <ArdyPortrait v-else :avatar="avatar" />
+        <figcaption v-if="previewUnavailable" role="status">La vista 3D no está disponible en este dispositivo. Puedes seguir editando en 2D.</figcaption>
       </figure>
       <fieldset class="tile form-stack ardy-controls" :disabled="busy || !!purchasing">
         <legend>Personalización</legend>
@@ -164,3 +191,8 @@ onMounted(() => run(false))
     </section>
   </section>
 </template>
+
+<style scoped>
+.ardy-preview-modes { display: flex; justify-content: center; gap: .5rem; }
+.ardy-preview-modes .button { min-width: 48px; min-height: 44px; }
+</style>
