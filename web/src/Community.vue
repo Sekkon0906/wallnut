@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, reactive, ref } from 'vue'
-import { ArrowUpRight, BookOpen, CalendarDays, ChevronRight, GraduationCap, Megaphone, Plus, Trophy, UserRound, Wallet as WalletIcon, X } from '@lucide/vue'
+import { ArrowUpRight, BookOpen, CalendarDays, ChevronRight, GraduationCap, Megaphone, MessageCircle, Plus, Trophy, UserRound, Wallet as WalletIcon, X } from '@lucide/vue'
 import Administration from './Administration.vue'
 import FacultyBudgetView from './FacultyBudgetView.vue'
 import GradeRedemptionView from './GradeRedemptionView.vue'
@@ -10,6 +10,7 @@ import MyArdyView from './MyArdyView.vue'
 import ParticipationRanking from './ParticipationRanking.vue'
 import CampusEvents from './CampusEvents.vue'
 import CampusPosts from './CampusPosts.vue'
+import ArdiHelp from './ArdiHelp.vue'
 import { api, errorText, localDemo, RequestError, type Account, type Application, type Course, type WorkshopCall } from './client'
 
 const props = defineProps<{ account: Account; token: string }>()
@@ -32,6 +33,7 @@ const sections = [
   { id: 'calls', label: 'Convocatorias' },
 ] as const
 const section = ref<typeof sections[number]['id']>('all')
+const helpOpen = ref(false)
 const view = ref<'community' | 'groups' | 'agenda' | 'wallet' | 'grade' | 'ardy' | 'ranking'>(
   props.account.role === 'admin' ? 'groups' : 'community',
 )
@@ -73,6 +75,17 @@ const roleHome = {
   faculty: { title: 'Espacio docente', description: 'Publica convocatorias, revisa evidencias y gestiona tus grupos.' },
   admin: { title: 'Comunidad', description: 'Consulta las convocatorias y la agenda de la comunidad.' },
   staff: { title: 'Comunidad', description: 'Consulta la agenda. Administración puede habilitar tus funciones docentes.' },
+}
+
+function navigateFromHelp(destination: 'community' | 'events' | 'posts' | 'calls' | 'agenda' | 'groups' | 'wallet' | 'ardy' | 'ranking') {
+  helpOpen.value = false
+  if (destination === 'events' || destination === 'posts' || destination === 'calls') {
+    section.value = destination
+    view.value = 'community'
+  } else {
+    if (destination === 'community') section.value = 'all'
+    view.value = destination
+  }
 }
 
 function openGradeRedemption(course: Course) {
@@ -252,6 +265,13 @@ async function confirmEnrollment() {
         <UserRound :size="19" aria-hidden="true" /> Mi Ardy
       </button>
     </nav>
+    <div class="dashboard-help">
+      <button class="button secondary" type="button" aria-haspopup="dialog" @click="helpOpen = true">
+        <MessageCircle :size="18" aria-hidden="true" /> Ayuda de Ardi
+      </button>
+    </div>
+    <ArdiHelp v-if="helpOpen" :token="token" @close="helpOpen = false"
+      @navigate="navigateFromHelp" @expired="emit('expired')" />
     <p v-if="notice" class="success" role="status">{{ notice }}</p>
     <p v-if="problem" class="error" role="alert">{{ problem }}</p>
 
