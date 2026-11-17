@@ -26,6 +26,8 @@ El [plan de desarrollo y arquitectura](docs/plan-de-desarrollo-y-arquitectura.md
 - La tarjeta virtual permite cobrar y pagar Ardi Coins entre estudiantes por QR o código manual. El color se guarda en ese navegador o app. Las transacciones aparecen en ambas billeteras.
 - En Comunidad se publican talleres, encuentros y torneos de estudiantes, docentes y administración. Los estudiantes pueden inscribirse o liberar su cupo antes del inicio.
 - Cada estudiante puede crear un perfil del campus con su nombre, presentación y Ardy. El perfil es privado al empezar. Si se activa, otros usuarios de Wallnut pueden abrirlo desde los eventos de ese estudiante. La carrera se muestra solo si el titular lo elige.
+- Comunidad permite filtrar eventos, publicaciones y convocatorias. Los estudiantes pueden compartir una foto o texto, editar sus publicaciones y reportar contenido. Administración revisa los reportes y puede ocultar la publicación.
+- Los torneos individuales admiten un cuadro de eliminación directa. El organizador genera el cuadro con los inscritos y registra ganadores y marcadores. Cada ganador avanza a la ronda correspondiente.
 
 Los **Ardi Coins** son unidades de uso interno sin valor monetario. El servidor administra los saldos y registra las operaciones en PostgreSQL. Los **Ardi Points** mantienen su origen académico y sus propias reglas de canje.
 
@@ -118,13 +120,20 @@ La colección del piloto tiene ocho prendas, dos por rareza, y cada nuez desbloq
 2. Publica un evento desde **Comunidad**. Entra en otra pestaña como Mateo y abre el perfil desde el nombre de María en la tarjeta del evento.
 3. Desactiva la visibilidad y guarda como María. Al volver a cargar los eventos, Mateo vuelve a ver el nombre del organizador sin acceso al perfil.
 
+### Probar publicaciones y el cuadro de un torneo
+
+1. Entra como estudiante y abre **Comunidad → Publicaciones**. Escribe un texto, adjunta una foto o combina ambos. Revisa la tarjeta que ve la comunidad y prueba la edición.
+2. Entra con la segunda cuenta estudiantil y reporta una publicación de prueba. Entra como administración y abre **Comunidad → Publicaciones** para revisar el reporte y probar la moderación. Las fotos del feed requieren una sesión de Wallnut. Se guardan normalizadas y el enlace deja de servir cuando se oculta el contenido para la comunidad.
+3. Publica un evento de tipo **Torneo** e inscribe dos estudiantes desde sus cuentas. Como organizador, abre **Ver cuadro** y confirma **Generar cuadro**. A partir de ese momento se cierran las inscripciones.
+4. En el cuadro, elige **Registrar resultado**, selecciona el ganador y añade un marcador si hace falta. Con más de dos participantes, revisa que el resultado llene el cruce de la siguiente ronda. Al terminar la final se muestra el campeón.
+
 ## Probar el APK de demostración
 
 Inicia primero la API y la web local como se explica arriba. Con un emulador Android abierto o un teléfono de desarrollo conectado por USB:
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito8-demo.apk
+adb install -r Wallnut-Android-hito9-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

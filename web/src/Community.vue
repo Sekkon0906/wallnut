@@ -9,6 +9,7 @@ import WalletView from './WalletView.vue'
 import MyArdyView from './MyArdyView.vue'
 import ParticipationRanking from './ParticipationRanking.vue'
 import CampusEvents from './CampusEvents.vue'
+import CampusPosts from './CampusPosts.vue'
 import { api, errorText, localDemo, RequestError, type Account, type Application, type Course, type WorkshopCall } from './client'
 
 const props = defineProps<{ account: Account; token: string }>()
@@ -24,6 +25,13 @@ const calls = ref<WorkshopCall[]>([])
 const courses = ref<Course[]>([])
 const applications = ref<Application[]>([])
 const filter = ref<Filter>('all')
+const sections = [
+  { id: 'all', label: 'Todo' },
+  { id: 'events', label: 'Eventos' },
+  { id: 'posts', label: 'Publicaciones' },
+  { id: 'calls', label: 'Convocatorias' },
+] as const
+const section = ref<typeof sections[number]['id']>('all')
 const view = ref<'community' | 'groups' | 'agenda' | 'wallet' | 'grade' | 'ardy' | 'ranking'>(
   props.account.role === 'admin' ? 'groups' : 'community',
 )
@@ -262,8 +270,16 @@ async function confirmEnrollment() {
         <img src="/ardy.webp" alt="" />
       </section>
 
-      <CampusEvents :token="token" :role="account.role" @expired="emit('expired')" />
+      <div class="filters campus-feed-filters" role="group" aria-label="Contenido de Comunidad">
+        <button v-for="entry in sections" :key="entry.id" class="filter" type="button"
+          :aria-pressed="entry.id === section" @click="section = entry.id">{{ entry.label }}</button>
+      </div>
+      <CampusEvents v-if="section === 'all' || section === 'events'" :token="token" :role="account.role"
+        @expired="emit('expired')" />
+      <CampusPosts v-if="section === 'all' || section === 'posts'" :token="token" :role="account.role"
+        @expired="emit('expired')" />
 
+      <template v-if="section === 'all' || section === 'calls'">
       <div class="section-heading">
         <div>
           <h2>Convocatorias</h2>
@@ -304,6 +320,7 @@ async function confirmEnrollment() {
       </div>
       <button v-if="hasMore" class="button secondary show-more" :disabled="loading" @click="loadCalls(true)">Cargar más</button>
       <button v-if="problem && !calls.length" class="button secondary" @click="loadCalls()">Reintentar</button>
+      </template>
     </template>
 
     <WorkshopAgenda v-else-if="view === 'agenda'" :token="token" :is-student="isStudent"

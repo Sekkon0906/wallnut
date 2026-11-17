@@ -3,6 +3,7 @@ import { onMounted, reactive, ref } from 'vue'
 import { CalendarDays, MapPin, Plus } from '@lucide/vue'
 import { api, errorText, RequestError, type Role } from './client'
 import CampusProfileDialog from './CampusProfileDialog.vue'
+import TournamentDialog from './TournamentDialog.vue'
 
 const props = defineProps<{ token: string; role: Role }>()
 const emit = defineEmits<{ expired: [] }>()
@@ -12,7 +13,7 @@ type EventCard = {
   id: string; title: string; description: string; category: Category; starts_at: string
   location: string; capacity: number; organizer: string; institutional: boolean; cancelled: boolean
   organizer_id: string; organizer_profile_visible: boolean
-  mine: boolean; upcoming: boolean; attendees: number; enrolled: boolean
+  mine: boolean; upcoming: boolean; attendees: number; enrolled: boolean; registration_open: boolean
 }
 const defaults = { title: '', description: '', location: '', start: '', category: 'tournament' as Category, capacity: 16 }
 const form = reactive({ ...defaults })
@@ -24,6 +25,7 @@ const problem = ref('')
 const notice = ref('')
 const cancelling = ref('')
 const openedProfile = ref('')
+const openedTournament = ref('')
 const format = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Bogota' })
 let pending: { id: string; fingerprint: string } | undefined
 
@@ -75,6 +77,12 @@ function update(item: EventCard, cancel = false) {
   })
 }
 
+function tournamentGenerated() {
+  events.value = events.value.map(item => item.id === openedTournament.value
+    ? { ...item, registration_open: false }
+    : item)
+}
+
 onMounted(() => perform(fetchEvents))
 </script>
 
@@ -123,12 +131,14 @@ onMounted(() => perform(fetchEvents))
             <template v-else>{{ item.organizer }}</template>
             · {{ item.attendees }} de {{ item.capacity }} cupos ocupados
           </p>
-          <div v-if="item.upcoming && !item.cancelled" class="workshop-actions">
-            <button v-if="role === 'student'" class="button secondary" type="button"
+          <div class="workshop-actions">
+            <button v-if="role === 'student' && item.registration_open" class="button secondary" type="button"
               :disabled="busy || (!item.enrolled && item.attendees >= item.capacity)" @click="update(item)">
               {{ item.enrolled ? 'Liberar mi cupo' : 'Inscribirme' }}
             </button>
-            <template v-if="item.mine || role === 'admin'">
+            <button v-if="item.category === 'tournament'" class="button secondary" type="button"
+              :aria-label="`Ver cuadro del torneo: ${item.title}`" @click="openedTournament = item.id">Ver cuadro</button>
+            <template v-if="item.upcoming && !item.cancelled && (item.mine || role === 'admin')">
               <button v-if="cancelling === item.id" class="button secondary" type="button" :disabled="busy"
                 @click="update(item, true)">Confirmar cancelación</button>
               <button v-else class="button quiet" type="button" :disabled="busy" @click="cancelling = item.id">Cancelar evento</button>
@@ -141,6 +151,8 @@ onMounted(() => perform(fetchEvents))
       @click="perform(() => fetchEvents(!problem))">{{ problem ? 'Actualizar eventos' : 'Ver más eventos' }}</button>
     <CampusProfileDialog v-if="openedProfile" :token="token" :student-id="openedProfile"
       @close="openedProfile = ''" @expired="emit('expired')" />
+    <TournamentDialog v-if="openedTournament" :token="token" :event-id="openedTournament"
+      @close="openedTournament = ''" @generated="tournamentGenerated" @expired="emit('expired')" />
   </section>
 </template>
 
