@@ -13,6 +13,8 @@ from .main import create_app
 DEMO_PEOPLE = {
     "demo-student": ("maria.piloto", STUDENT_DOMAIN, "María Piloto", "student"),
     "demo-second-student": ("mateo.piloto", STUDENT_DOMAIN, "Mateo Piloto", "student"),
+    "demo-third-student": ("camila.piloto", STUDENT_DOMAIN, "Camila Piloto", "student"),
+    "demo-fourth-student": ("julian.piloto", STUDENT_DOMAIN, "Julián Piloto", "student"),
     "demo-faculty": ("elena.piloto", STAFF_DOMAIN, "Elena Piloto", "faculty"),
     "demo-admin": ("campus.piloto", STAFF_DOMAIN, "Equipo Campus", "admin"),
 }

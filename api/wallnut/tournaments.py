@@ -20,7 +20,7 @@ class MatchResult(BaseModel):
 
 def tournament_event(db, event_id, *, lock=False):
     query = """
-        SELECT id, title, starts_at, organizer_id, cancelled, category
+        SELECT id, title, starts_at, organizer_id, cancelled, category, tournament_format
         FROM campus_events
         WHERE id = %s
     """
@@ -52,10 +52,15 @@ def tournament_view(db, event, account):
     matches = db.execute(
         """
         SELECT m.round_number, m.match_number, m.first_id, m.second_id, m.winner_id, m.score,
-               a1.display_name AS first_name, a2.display_name AS second_name
+               concat_ws(' y ', a1.display_name, b1.display_name) AS first_name,
+               concat_ws(' y ', a2.display_name, b2.display_name) AS second_name
         FROM tournament_matches m
+        LEFT JOIN tournament_participants p1 ON p1.event_id = m.event_id AND p1.student_id = m.first_id
+        LEFT JOIN tournament_participants p2 ON p2.event_id = m.event_id AND p2.student_id = m.second_id
         LEFT JOIN accounts a1 ON a1.id = m.first_id
         LEFT JOIN accounts a2 ON a2.id = m.second_id
+        LEFT JOIN accounts b1 ON b1.id = p1.partner_id
+        LEFT JOIN accounts b2 ON b2.id = p2.partner_id
         WHERE m.event_id = %s
         ORDER BY m.round_number, m.match_number
         """,
@@ -65,6 +70,13 @@ def tournament_view(db, event, account):
         "SELECT count(*) AS total FROM campus_event_enrollments WHERE event_id = %s",
         (event["id"],),
     ).fetchone()["total"]
+    doubles = event["tournament_format"] == "doubles"
+    entrant_count = participant_count
+    if doubles:
+        entrant_count = db.execute(
+            "SELECT count(*) AS total FROM tournament_pairs WHERE event_id = %s AND accepted_at IS NOT NULL",
+            (event["id"],),
+        ).fetchone()["total"]
     rounds = {}
     for row in matches:
         rounds.setdefault(row["round_number"], []).append(public_match(row))
@@ -87,8 +99,11 @@ def tournament_view(db, event, account):
         "starts_at": event["starts_at"],
         "state": state,
         "can_manage": can_manage,
-        "can_generate": can_manage and not matches and participant_count >= 2,
+        "can_generate": can_manage and not matches and entrant_count >= 2,
         "participant_count": participant_count,
+        "entrant_count": entrant_count,
+        "tournament_format": event["tournament_format"],
+        "unpaired_count": participant_count - entrant_count * 2 if doubles else 0,
         "champion": champion,
         "rounds": [{"number": number, "matches": group} for number, group in rounds.items()],
     }
@@ -133,23 +148,31 @@ def publish_bracket(event_id: UUID, account: CurrentAccount, db: Database, respo
         if db.execute("SELECT 1 FROM campus_tournaments WHERE event_id = %s", (event_id,)).fetchone():
             return tournament_view(db, event, account)
 
-        students = [entry["student_id"] for entry in db.execute(
-            "SELECT student_id FROM campus_event_enrollments WHERE event_id = %s", (event_id,),
-        )]
-        if len(students) < 2:
-            raise HTTPException(409, "Se necesitan al menos dos estudiantes inscritos.")
-        SystemRandom().shuffle(students)
-        rounds = seeded_matches(students)
+        doubles = event["tournament_format"] == "doubles"
+        entry_query = (
+            """
+            SELECT inviter_id AS student_id, invitee_id AS partner_id
+            FROM tournament_pairs WHERE event_id = %s AND accepted_at IS NOT NULL
+            """
+            if doubles else
+            "SELECT student_id, NULL AS partner_id FROM campus_event_enrollments WHERE event_id = %s"
+        )
+        entries = db.execute(entry_query, (event_id,)).fetchall()
+        if len(entries) < 2:
+            who = "parejas confirmadas" if doubles else "estudiantes inscritos"
+            raise HTTPException(409, f"Se necesitan al menos dos {who}.")
+        SystemRandom().shuffle(entries)
+        rounds = seeded_matches([entry["student_id"] for entry in entries])
 
         db.execute("INSERT INTO campus_tournaments (event_id) VALUES (%s)", (event_id,))
-        db.execute(
-            """
-            INSERT INTO tournament_participants (event_id, student_id)
-            SELECT event_id, student_id FROM campus_event_enrollments WHERE event_id = %s
-            """,
-            (event_id,),
-        )
         with db.cursor() as cursor:
+            cursor.executemany(
+                """
+                INSERT INTO tournament_participants (event_id, student_id, partner_id)
+                VALUES (%s, %s, %s)
+                """,
+                [(event_id, entry["student_id"], entry["partner_id"]) for entry in entries],
+            )
             cursor.executemany(
                 """
                 INSERT INTO tournament_matches (event_id, round_number, match_number,

@@ -9,13 +9,18 @@ const props = defineProps<{ token: string; role: Role }>()
 const emit = defineEmits<{ expired: [] }>()
 const categories = { workshop: 'Taller', tournament: 'Torneo', campus: 'Encuentro' }
 type Category = keyof typeof categories
+type TournamentFormat = 'individual' | 'doubles'
 type EventCard = {
   id: string; title: string; description: string; category: Category; starts_at: string
   location: string; capacity: number; organizer: string; institutional: boolean; cancelled: boolean
   organizer_id: string; organizer_profile_visible: boolean
   mine: boolean; upcoming: boolean; attendees: number; enrolled: boolean; registration_open: boolean
+  tournament_format: TournamentFormat
 }
-const defaults = { title: '', description: '', location: '', start: '', category: 'tournament' as Category, capacity: 16 }
+const defaults = {
+  title: '', description: '', location: '', start: '', category: 'tournament' as Category, capacity: 16,
+  tournament_format: 'individual' as TournamentFormat,
+}
 const form = reactive({ ...defaults })
 const events = ref<EventCard[]>([])
 const more = ref(false)
@@ -53,7 +58,10 @@ async function fetchEvents(append = false) {
 function publish() {
   void perform(async () => {
     const { start, ...fields } = form
-    const body = { ...fields, starts_at: `${start}:00-05:00` }
+    const body = {
+      ...fields, starts_at: `${start}:00-05:00`,
+      tournament_format: fields.category === 'tournament' ? fields.tournament_format : 'individual',
+    }
     const fingerprint = JSON.stringify(body)
     if (pending?.fingerprint !== fingerprint) pending = { fingerprint, id: crypto.randomUUID() }
     await api('/campus-events', { token: props.token, method: 'POST', data: { ...body, id: pending.id } })
@@ -104,7 +112,17 @@ onMounted(() => perform(fetchEvents))
             <option v-for="(label, value) in categories" :key="value" :value="value">{{ label }}</option>
           </select>
         </label>
-        <label>Cupos <input v-model.number="form.capacity" type="number" required min="2" max="500" /></label>
+        <label>Cupos para estudiantes
+          <input v-model.number="form.capacity" type="number" required max="500"
+            :min="form.category === 'tournament' && form.tournament_format === 'doubles' ? 4 : 2"
+            :step="form.category === 'tournament' && form.tournament_format === 'doubles' ? 2 : 1" />
+        </label>
+        <label v-if="form.category === 'tournament'">Modalidad
+          <select v-model="form.tournament_format">
+            <option value="individual">Individual</option>
+            <option value="doubles">Por parejas</option>
+          </select>
+        </label>
         <label>Inicio en Ibagué <input v-model="form.start" type="datetime-local" required /></label>
         <label>Lugar <input v-model="form.location" required minlength="2" maxlength="100" /></label>
       </div>
@@ -119,6 +137,7 @@ onMounted(() => perform(fetchEvents))
         <div class="call-content">
           <div class="call-meta">
             <span>{{ categories[item.category] }}</span>
+            <span v-if="item.tournament_format === 'doubles'" class="badge">Por parejas</span>
             <span class="badge">{{ item.institutional ? 'Universidad' : 'Estudiantes' }}</span>
             <span v-if="item.cancelled" class="badge">Cancelado</span>
           </div>
@@ -151,7 +170,7 @@ onMounted(() => perform(fetchEvents))
       @click="perform(() => fetchEvents(!problem))">{{ problem ? 'Actualizar eventos' : 'Ver más eventos' }}</button>
     <CampusProfileDialog v-if="openedProfile" :token="token" :student-id="openedProfile"
       @close="openedProfile = ''" @expired="emit('expired')" />
-    <TournamentDialog v-if="openedTournament" :token="token" :event-id="openedTournament"
+    <TournamentDialog v-if="openedTournament" :token="token" :event-id="openedTournament" :role="role"
       @close="openedTournament = ''" @generated="tournamentGenerated" @expired="emit('expired')" />
   </section>
 </template>

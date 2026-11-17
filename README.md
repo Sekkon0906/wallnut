@@ -28,7 +28,10 @@ El [plan de desarrollo y arquitectura](docs/plan-de-desarrollo-y-arquitectura.md
 - Cada estudiante puede crear un perfil del campus con su nombre, presentación y Ardy. El perfil es privado al empezar. Si se activa, otros usuarios de Wallnut pueden abrirlo desde los eventos de ese estudiante. La carrera se muestra solo si el titular lo elige.
 - Comunidad permite filtrar eventos, publicaciones y convocatorias. Los estudiantes pueden compartir una foto o texto, editar sus publicaciones y reportar contenido. Administración revisa los reportes y puede ocultar la publicación.
 - Los torneos individuales admiten un cuadro de eliminación directa. El organizador genera el cuadro con los inscritos y registra ganadores y marcadores. Cada ganador avanza a la ronda correspondiente.
+- Los torneos por parejas admiten invitaciones entre estudiantes inscritos. Al confirmar, ambos entran como una pareja. El cuadro conserva los dos nombres y avanza a la pareja ganadora.
 - **Ayuda de Ardi** permite elegir un tema o escribir una pregunta en español. Las respuestas se basan en las funciones de Wallnut y ofrecen accesos según el rol.
+
+La [verificación del plan](docs/verificacion-del-plan.md) resume lo entregado y los recorridos pendientes en el entorno institucional.
 
 Los **Ardi Coins** son unidades de uso interno sin valor monetario. El servidor administra los saldos y registra las operaciones en PostgreSQL. Los **Ardi Points** mantienen su origen académico y sus propias reglas de canje.
 
@@ -128,6 +131,13 @@ La colección del piloto tiene ocho prendas, dos por rareza, y cada nuez desbloq
 3. Publica un evento de tipo **Torneo** e inscribe dos estudiantes desde sus cuentas. Como organizador, abre **Ver cuadro** y confirma **Generar cuadro**. A partir de ese momento se cierran las inscripciones.
 4. En el cuadro, elige **Registrar resultado**, selecciona el ganador y añade un marcador si hace falta. Con más de dos participantes, revisa que el resultado llene el cruce de la siguiente ronda. Al terminar la final se muestra el campeón.
 
+### Probar un torneo por parejas
+
+1. Como docente, crea en **Comunidad → Eventos** un torneo futuro con modalidad **Por parejas** y al menos cuatro cupos. Los cupos cuentan estudiantes.
+2. Inscribe cuatro estudiantes. La demo incluye a María, Mateo, Camila y Julián. Las dos últimas cuentas se abren desde **Más cuentas para torneos**.
+3. Como María, abre **Ver cuadro → Mi pareja**, elige a Mateo y envía la invitación. Como Mateo, abre la misma vista y elige **Aceptar**. Forma la segunda pareja con Camila y Julián.
+4. Como organizador, abre el cuadro y elige **Generar cuadro**. El registro se cierra y avanzan las parejas confirmadas. En la final, registra el resultado y comprueba que se muestran los dos integrantes de la pareja campeona.
+
 ### Probar Ayuda de Ardi
 
 1. Inicia sesión y abre **Ayuda de Ardi** desde cualquier sección.
@@ -142,7 +152,7 @@ Inicia primero la API y la web local como se explica arriba. Con un emulador And
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito10-demo.apk
+adb install -r Wallnut-Android-hito11-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

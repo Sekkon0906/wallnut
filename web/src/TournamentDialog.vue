@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from 'vue'
 import { Trophy, X } from '@lucide/vue'
-import { api, errorText, RequestError } from './client'
+import { api, errorText, RequestError, type Role } from './client'
+import TournamentPairing from './TournamentPairing.vue'
 
 type Participant = { id: string; name: string }
 type Match = {
@@ -19,11 +20,14 @@ type Tournament = {
   can_manage: boolean
   can_generate: boolean
   participant_count: number
+  entrant_count: number
+  unpaired_count: number
+  tournament_format: 'individual' | 'doubles'
   champion: Participant | null
   rounds: { number: number; matches: Match[] }[]
 }
 
-const props = defineProps<{ eventId: string; token: string }>()
+const props = defineProps<{ eventId: string; token: string; role: Role }>()
 const emit = defineEmits<{ expired: []; close: []; generated: [] }>()
 const dialog = ref<HTMLDialogElement>()
 const winnerInput = ref<HTMLSelectElement>()
@@ -118,24 +122,35 @@ onMounted(() => {
     <template v-if="tournament">
       <p v-if="tournament.state === 'cancelled'" class="state-note">Este torneo fue cancelado.</p>
       <p v-if="tournament.champion" class="tournament-champion">
-        <Trophy :size="22" aria-hidden="true" /> Campeón: <strong>{{ tournament.champion.name }}</strong>
+        <Trophy :size="22" aria-hidden="true" />
+        {{ tournament.tournament_format === 'doubles' ? 'Pareja campeona' : 'Campeón' }} · <strong>{{ tournament.champion.name }}</strong>
       </p>
       <div v-if="!tournament.rounds.length && tournament.state !== 'cancelled'" class="tournament-registration">
-        <p>Hay {{ tournament.participant_count }} participantes inscritos. El cuadro requiere al menos dos.</p>
-        <button v-if="tournament.can_generate && !confirmBracket" class="button primary" type="button" @click="confirmBracket = true">
-          Generar cuadro
-        </button>
+        <p v-if="tournament.tournament_format === 'doubles'">
+          {{ tournament.entrant_count }} parejas confirmadas y {{ tournament.unpaired_count }} estudiantes sin pareja.
+          El cuadro requiere al menos dos parejas.
+        </p>
+        <p v-else>Hay {{ tournament.participant_count }} participantes inscritos. El cuadro requiere al menos dos.</p>
+        <div v-if="!confirmBracket" class="workshop-actions">
+          <button v-if="tournament.can_generate" class="button primary" type="button" :disabled="busy" @click="confirmBracket = true">
+            Generar cuadro
+          </button>
+          <button class="button quiet" type="button" :disabled="busy" @click="load">Actualizar torneo</button>
+        </div>
         <template v-else-if="confirmBracket">
           <p>Se cerrarán las inscripciones y el cuadro quedará listo para registrar resultados.</p>
+          <p v-if="tournament.unpaired_count">El cuadro incluirá solo parejas confirmadas. Hay {{ tournament.unpaired_count }} estudiantes sin pareja.</p>
           <div class="workshop-actions">
             <button class="button primary" type="button" :disabled="busy" @click="generate">Confirmar cuadro</button>
             <button class="button quiet" type="button" :disabled="busy" @click="confirmBracket = false">Volver</button>
           </div>
         </template>
       </div>
+      <TournamentPairing v-if="tournament.tournament_format === 'doubles' && tournament.state === 'registration' && role === 'student'"
+        :token="token" :event-id="eventId" :locked="busy || confirmBracket" @expired="emit('expired')" @changed="load" />
       <form v-if="editing" class="tile form-stack tournament-result" @submit.prevent="record">
         <h3>{{ roundTitle(editing.round, tournament.rounds.length) }} · Partido {{ editing.match.number }}</h3>
-        <label>Ganador
+        <label>{{ tournament.tournament_format === 'doubles' ? 'Pareja ganadora' : 'Ganador' }}
           <select ref="winnerInput" v-model="winner" required :disabled="busy">
             <option value="" disabled>Selecciona un participante</option>
             <option v-if="editing.match.first" :value="editing.match.first.id">{{ editing.match.first.name }}</option>

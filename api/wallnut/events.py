@@ -31,6 +31,7 @@ class EventInput(BaseModel):
     location: Annotated[str, StringConstraints(strip_whitespace=True, min_length=2, max_length=100)]
     starts_at: AwareDatetime
     capacity: Annotated[int, Field(strict=True, ge=2, le=500)]
+    tournament_format: Literal["individual", "doubles"] = "individual"
 
 
 def get_event(db, event_id, viewer):
@@ -56,14 +57,19 @@ def list_events(account: CurrentAccount, db: Database, response: Response,
 def publish_event(body: EventInput, account: CurrentAccount, db: Database):
     if account.role not in {"student", "faculty", "admin"}:
         raise HTTPException(403, "Tu cuenta puede consultar los eventos del campus.")
+    if body.tournament_format == "doubles":
+        if body.category != "tournament":
+            raise HTTPException(422, "La modalidad por parejas está disponible para torneos.")
+        if body.capacity < 4 or body.capacity % 2:
+            raise HTTPException(422, "Un torneo por parejas requiere un número par de cupos y al menos cuatro.")
     values = {**body.model_dump(), "organizer": account.id, "institutional": account.role != "student"}
     with db.transaction():
         db.execute(
             """
             INSERT INTO campus_events (id, organizer_id, institutional, title, description, category,
-                                       location, starts_at, capacity)
+                                       location, starts_at, capacity, tournament_format)
             SELECT %(id)s, %(organizer)s, %(institutional)s, %(title)s, %(description)s, %(category)s,
-                   %(location)s, %(starts_at)s, %(capacity)s
+                   %(location)s, %(starts_at)s, %(capacity)s, %(tournament_format)s
             WHERE %(starts_at)s > clock_timestamp()
             ON CONFLICT DO NOTHING
             """,

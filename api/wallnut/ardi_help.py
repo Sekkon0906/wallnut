@@ -151,17 +151,18 @@ TOPICS = (
           }),
     Topic("events", "Eventos y torneos",
           ("evento", "eventos", "torneo", "torneos", "marcador", "eliminacion directa", "cuadro del torneo",
-           "generar cuadro", "registrar resultado"),
+           "generar cuadro", "registrar resultado", "por parejas", "formar pareja", "enviar una invitacion"),
           {
               "student": Guide(
-                  "En Comunidad → Eventos puedes inscribirte o crear un evento. En un torneo individual, quien organiza "
-                  "puede generar el cuadro con dos o más inscritos. Al publicarlo se cierran las inscripciones. "
-                  "En Ver cuadro puedes seguir los partidos y sus resultados.",
+                  "En Comunidad → Eventos puedes inscribirte o crear un evento. Para un torneo por parejas, "
+                  "ambos se inscriben y uno envía la invitación desde Ver cuadro → Mi pareja. "
+                  "La otra persona debe aceptarla. En Ver cuadro también puedes seguir los partidos y resultados.",
                   "events",
               ),
               "all": Guide(
-                  "En Comunidad → Eventos, usa Ver cuadro para consultar el torneo individual. Quien organiza "
-                  "genera el cuadro con al menos dos inscritos y registra los ganadores y marcadores.",
+                  "En Comunidad → Eventos, usa Ver cuadro para consultar el torneo. Quien organiza "
+                  "genera el cuadro con al menos dos participantes individuales o dos parejas confirmadas. "
+                  "Al publicarlo cierra las inscripciones y puede registrar los ganadores y marcadores.",
                   "events",
               ),
           }),

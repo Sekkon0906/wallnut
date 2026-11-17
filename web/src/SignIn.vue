@@ -69,6 +69,11 @@ onMounted(async () => {
         <button class="button quiet" @click="emit('signIn', 'demo-second-student')">
           Entrar como Mateo · estudiante de prueba
         </button>
+        <details>
+          <summary>Más cuentas para torneos</summary>
+          <button class="button quiet" type="button" @click="emit('signIn', 'demo-third-student')">Entrar como Camila</button>
+          <button class="button quiet" type="button" @click="emit('signIn', 'demo-fourth-student')">Entrar como Julián</button>
+        </details>
         <button class="button secondary" @click="emit('signIn', 'demo-faculty')">
           Entrar como docente
         </button>
