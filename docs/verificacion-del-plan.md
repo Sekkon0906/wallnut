@@ -1,15 +1,15 @@
 # Verificación del plan de Wallnut
 
-**Corte · versión 0.16.0**
+**Corte · versión 0.16.0 y despliegue de Railway del 18 de noviembre de 2026**
 
-Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como punto de partida. Esta revisión separa la evidencia de desarrollo de las validaciones necesarias en el entorno institucional.
+Los recorridos de esta nota sirven para comprobar los criterios del [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md). La [web de Railway](https://wallnut-production.up.railway.app) tiene el esquema listo y mantiene cerrado el acceso mientras se configura Google.
 
 ## Estado por módulo
 
 | Módulo | Disponible para probar | Pendiente del piloto |
 |---|---|---|
 | Identidad y roles | Sesiones y funciones por rol con identidad simulada en las pruebas. Railway mantiene el acceso cerrado durante la preparación de Google. | Registrar el origen HTTPS en el cliente OAuth y probar cuentas institucionales de los tres roles. |
-| Comunidad y perfiles | Eventos, publicaciones con foto, perfiles voluntarios, reportes y moderación. Comunidad organiza el contenido por secciones. | Definir responsables y tiempos de moderación. Revisar si hace falta ordenar todas las fuentes en una sola lista. |
+| Comunidad y perfiles | Eventos, publicaciones con foto, perfiles voluntarios, reportes y moderación. Comunidad organiza el contenido por secciones. | Unificar el feed cronológico con filtros. Definir responsables y tiempos de moderación. |
 | Talleres y evidencias | Convocatoria, agenda, inscripción, asistencia, entrega, revisión y recompensa. Reprogramación y cancelación con historial. Lista de inscritos y control de asistencia para el docente asignado. | Probar el QR y el código manual entre dos equipos y verificar que los inscritos encuentran los avisos de agenda. |
 | Billetera y canje académico | Saldos y movimientos, transferencias internas, cupos docentes y canje con nota simulada. | Acordar con el tutor la elegibilidad y la procedencia de los Coins usados para canjear Points. |
 | Ardy y ranking | Editor con vistas 2D y 3D, armario, tienda, nueces y ranking voluntario. | Probar interacción y rendimiento en iPhone y Android físicos. |

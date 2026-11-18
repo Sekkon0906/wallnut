@@ -4,6 +4,8 @@ Una web instalable para la comunidad de la Universidad de Ibagué y un proyecto 
 
 El piloto está desplegado en [Railway](https://wallnut-production.up.railway.app). La [guía de despliegue](docs/despliegue-del-piloto.md) explica cómo configurar y activar el acceso institucional.
 
+El [plan de desarrollo y arquitectura](docs/plan-de-desarrollo-y-arquitectura.md) describe qué está implementado y qué se necesita para cerrar el piloto. La [guía de continuidad](docs/continuidad-del-proyecto.md) reúne las referencias y el registro para retomar tareas entre sesiones.
+
 El [plan de desarrollo y arquitectura](docs/plan-de-desarrollo-y-arquitectura.md) describe los módulos, permisos, datos y pruebas del piloto. Los APK y paquetes de cada hito están en [Releases](https://github.com/Sekkon0906/wallnut/releases).
 
 La [guía de despliegue del piloto](docs/despliegue-del-piloto.md) incluye el arranque con Compose y la restauración de prueba de PostgreSQL.
