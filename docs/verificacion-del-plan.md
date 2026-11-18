@@ -1,6 +1,6 @@
 # Verificación del plan de Wallnut
 
-**Corte · versión 0.16.0 y despliegue de Railway del 18 de noviembre de 2026**
+**Corte · versión 0.17.0**
 
 Los recorridos de esta nota sirven para comprobar los criterios del [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md). La [web de Railway](https://wallnut-production.up.railway.app) tiene el esquema listo y mantiene cerrado el acceso mientras se configura Google.
 
@@ -9,13 +9,21 @@ Los recorridos de esta nota sirven para comprobar los criterios del [plan de arq
 | Módulo | Disponible para probar | Pendiente del piloto |
 |---|---|---|
 | Identidad y roles | Sesiones y funciones por rol con identidad simulada en las pruebas. Railway mantiene el acceso cerrado durante la preparación de Google. | Registrar el origen HTTPS en el cliente OAuth y probar cuentas institucionales de los tres roles. |
-| Comunidad y perfiles | Eventos, publicaciones con foto, perfiles voluntarios, reportes y moderación. Comunidad organiza el contenido por secciones. | Unificar el feed cronológico con filtros. Definir responsables y tiempos de moderación. |
+| Comunidad y perfiles | Feed cronológico de publicaciones, eventos y convocatorias con filtro por procedencia, paginación y acceso a cada recurso. Fotos y perfiles conservan su visibilidad. | Definir responsables y tiempos de moderación. Probar el recorrido con cuentas institucionales. |
 | Talleres y evidencias | Convocatoria, agenda, inscripción, asistencia, entrega, revisión y recompensa. Reprogramación y cancelación con historial. Lista de inscritos y control de asistencia para el docente asignado. | Probar el QR y el código manual entre dos equipos y verificar que los inscritos encuentran los avisos de agenda. |
 | Billetera y canje académico | Saldos y movimientos, transferencias internas, cupos docentes y canje con nota simulada. | Acordar con el tutor la elegibilidad y la procedencia de los Coins usados para canjear Points. |
 | Ardy y ranking | Editor con vistas 2D y 3D, armario, tienda, nueces y ranking voluntario. | Probar interacción y rendimiento en iPhone y Android físicos. |
 | Eventos y torneos | Modalidad individual y por parejas, inscripciones, cuadro, pase directo, marcadores y campeón. | Validar un torneo real con organizador y estudiantes. Confirmar la disponibilidad del espacio por el canal institucional. |
 | Ayuda de Ardi | Temas frecuentes y preguntas en español con accesos según el rol. | Revisar las preguntas sin respuesta durante el piloto y ajustar las guías. |
 | Operación y evaluación | Web y API en HTTPS en Railway, PostgreSQL privado con volumen, arranque con Compose, restauración de prueba e informe semanal exportable. | Probar iPhone y Android físicos, configurar respaldos y acordar metas y muestra con el tutor. |
+
+## Feed de Comunidad
+
+La vista «Todo» mezcla publicaciones, eventos y convocatorias por fecha de publicación. El filtro de procedencia permite ver Universidad o estudiantes. Las pestañas por tipo conservan las acciones para crear y gestionar contenido. Cada tarjeta abre el recurso concreto para inscribirse, revisar el cuadro, postularse, editar o reportar según los permisos de la cuenta.
+
+El feed carga una página cada vez. La posición de la última tarjeta identifica desde dónde continuar, de modo que las publicaciones nuevas aparecen al actualizar. Las ediciones conservan la fecha de publicación. Los eventos cancelados muestran su estado y las convocatorias reflejan si ya tienen tallerista.
+
+La migración 016 agrega la fecha de creación de eventos. Los eventos anteriores reciben la fecha de aplicación de esa migración, dado que el esquema anterior guardaba únicamente su inicio programado. Las publicaciones ocultas se muestran solo a su autor, igual que en su sección, y las retiradas quedan fuera de la consulta.
 
 ## Alcance de torneos por parejas
 
@@ -49,7 +57,7 @@ Una ronda de aceptación requiere un entorno HTTPS, una cuenta de cada rol y al 
 2. **Instalación**. Instalar la web desde Safari y abrir Android con el entorno HTTPS. Cerrar la app, volver a abrir y revisar que se recupera la sesión.
 3. **Taller**. Publicar, seleccionar tallerista, inscribir, registrar una asistencia por QR entre dos dispositivos y otra por código manual. Subir evidencia y acreditar una sola recompensa. Abrir «Ver inscritos» como docente y confirmar que la lista refleja la asistencia y la aprobación.
 4. **Economía**. Pagar Coins por QR y repetir la misma solicitud. Solicitar un canje con nota simulada. Comprobar saldos, reserva, aprobación o devolución con motivo.
-5. **Comunidad**. Reportar y moderar una foto. Inscribir y confirmar dos parejas. Publicar el cuadro, cerrar inscripciones y registrar el resultado.
+5. **Comunidad**. Crear contenido de cada tipo, confirmar su orden en «Todo», filtrar por procedencia y abrir cada tarjeta. Cargar otra página después de una nueva publicación. Reportar y moderar una foto y verificar que se retira del feed de otro estudiante. Inscribir y confirmar dos parejas, publicar el cuadro y registrar el resultado.
 6. **Ardy**. Cambiar de 2D a 3D, girar con un dedo y con los botones, probar una prenda del armario y guardar la apariencia. Volver a 2D y comprobar que conserva la apariencia guardada.
 7. **Evaluación**. Comparar el recorrido de un taller de prueba con los totales para sus fechas. Exportar el CSV desde Administración y comprobar que las cuentas de estudiante y docente carecen de acceso al informe.
 

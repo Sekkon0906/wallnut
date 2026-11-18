@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Response
 from pydantic import BaseModel, HttpUrl, StringConstraints
 
 from .campus import Label, course_owner
@@ -10,6 +10,26 @@ from .identity import CurrentAccount
 
 router = APIRouter(prefix="/workshop-calls", tags=["Comunidad"])
 Description = Annotated[str, StringConstraints(strip_whitespace=True, min_length=10, max_length=1800)]
+CALLS = """
+    SELECT c.id, c.course_id, c.title, c.description, c.created_at, s.title AS course,
+           a.display_name AS faculty,
+           NOT EXISTS (SELECT 1 FROM facilitator_applications
+                       WHERE call_id = c.id AND status = 'approved') AS open,
+           s.faculty_id = %(student)s AND %(faculty)s AS can_manage,
+           EXISTS (
+               SELECT 1 FROM facilitator_applications selected
+               WHERE selected.call_id = c.id AND selected.status = 'approved'
+                 AND (selected.student_id = %(student)s
+                      OR (s.faculty_id = %(student)s AND %(faculty)s))
+           ) AND NOT EXISTS (
+               SELECT 1 FROM workshops scheduled WHERE scheduled.call_id = c.id
+           ) AS can_schedule,
+           (SELECT status FROM facilitator_applications
+            WHERE call_id = c.id AND student_id = %(student)s) AS my_application
+    FROM workshop_calls c
+    JOIN course_sections s ON s.id = c.course_id
+    JOIN accounts a ON a.id = s.faculty_id
+"""
 
 
 class WorkshopCall(BaseModel):
@@ -38,31 +58,24 @@ def list_calls(account: CurrentAccount, db: Database,
                limit: Annotated[int, Query(ge=1, le=50)] = 25,
                offset: Annotated[int, Query(ge=0)] = 0):
     return db.execute(
-        """
-        SELECT c.id, c.course_id, c.title, c.description, c.created_at, s.title AS course,
-               a.display_name AS faculty,
-               NOT EXISTS (SELECT 1 FROM facilitator_applications
-                           WHERE call_id = c.id AND status = 'approved') AS open,
-               s.faculty_id = %(student)s AND %(faculty)s AS can_manage,
-               EXISTS (
-                   SELECT 1 FROM facilitator_applications selected
-                   WHERE selected.call_id = c.id AND selected.status = 'approved'
-                     AND (selected.student_id = %(student)s
-                          OR (s.faculty_id = %(student)s AND %(faculty)s))
-               ) AND NOT EXISTS (
-                   SELECT 1 FROM workshops scheduled WHERE scheduled.call_id = c.id
-               ) AS can_schedule,
-               (SELECT status FROM facilitator_applications
-                WHERE call_id = c.id AND student_id = %(student)s) AS my_application
-        FROM workshop_calls c
-        JOIN course_sections s ON s.id = c.course_id
-        JOIN accounts a ON a.id = s.faculty_id
+        CALLS + """
         ORDER BY c.created_at DESC, c.id DESC
         LIMIT %(limit)s OFFSET %(offset)s
         """,
         {"student": account.id, "faculty": account.role == "faculty",
          "limit": limit, "offset": offset},
     ).fetchall()
+
+
+@router.get("/{call_id}")
+def read_call(call_id: UUID, account: CurrentAccount, db: Database, response: Response):
+    response.headers["Cache-Control"] = "private, no-store"
+    call = db.execute(CALLS + " WHERE c.id = %(id)s", {
+        "id": call_id, "student": account.id, "faculty": account.role == "faculty",
+    }).fetchone()
+    if not call:
+        raise HTTPException(404, "No encontramos la convocatoria.")
+    return call
 
 
 @router.post("", status_code=201)

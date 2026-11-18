@@ -53,6 +53,12 @@ def list_events(account: CurrentAccount, db: Database, response: Response,
     ).fetchall()
 
 
+@router.get("/{event_id}")
+def read_event(event_id: UUID, account: CurrentAccount, db: Database, response: Response):
+    response.headers["Cache-Control"] = "private, no-store"
+    return get_event(db, event_id, account.id)
+
+
 @router.post("", status_code=201)
 def publish_event(body: EventInput, account: CurrentAccount, db: Database):
     if account.role not in {"student", "faculty", "admin"}:

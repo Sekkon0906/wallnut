@@ -6,13 +6,14 @@ El piloto está desplegado en [Railway](https://wallnut-production.up.railway.ap
 
 El [plan de desarrollo y arquitectura](docs/plan-de-desarrollo-y-arquitectura.md) describe qué está implementado y qué se necesita para cerrar el piloto. La [guía de continuidad](docs/continuidad-del-proyecto.md) reúne las referencias y el registro para retomar tareas entre sesiones.
 
-El [plan de desarrollo y arquitectura](docs/plan-de-desarrollo-y-arquitectura.md) describe los módulos, permisos, datos y pruebas del piloto. Los APK y paquetes de cada hito están en [Releases](https://github.com/Sekkon0906/wallnut/releases).
+Los APK y paquetes de cada hito están en [Releases](https://github.com/Sekkon0906/wallnut/releases).
 
 La [guía de despliegue del piloto](docs/despliegue-del-piloto.md) incluye el arranque con Compose y la restauración de prueba de PostgreSQL.
 
 ## Funciones disponibles
 
 - Acceso institucional con Google Workspace, cuentas únicas y permisos por rol.
+- La vista **Comunidad → Todo** reúne publicaciones, eventos y convocatorias por fecha. Permite filtrar por procedencia y abrir cada recurso con sus acciones disponibles.
 - Administración habilita a docentes y asigna grupos. Docentes y administración confirman matrículas.
 - El docente publica una convocatoria. El estudiante envía una propuesta y puede adjuntar un enlace. El docente puede aprobar una postulación por convocatoria.
 - El estudiante consulta el estado en Comunidad o en Mis postulaciones.
@@ -133,6 +134,8 @@ La colección del piloto tiene ocho prendas, dos por rareza, y cada nuez desbloq
 
 ### Probar publicaciones y el cuadro de un torneo
 
+Para revisar el feed, abre **Comunidad → Todo**, selecciona una procedencia y abre una tarjeta. **Volver al feed** recupera la lista actualizada. Si hay más contenido, **Ver más contenido** continúa desde la última tarjeta cargada.
+
 1. Entra como estudiante y abre **Comunidad → Publicaciones**. Escribe un texto, adjunta una foto o combina ambos. Revisa la tarjeta que ve la comunidad y prueba la edición.
 2. Entra con la segunda cuenta estudiantil y reporta una publicación de prueba. Entra como administración y abre **Comunidad → Publicaciones** para revisar el reporte y probar la moderación. Las fotos del feed requieren una sesión de Wallnut. Se guardan normalizadas y el enlace deja de servir cuando se oculta el contenido para la comunidad.
 3. Publica un evento de tipo **Torneo** e inscribe dos estudiantes desde sus cuentas. Como organizador, abre **Ver cuadro** y confirma **Generar cuadro**. A partir de ese momento se cierran las inscripciones.
@@ -165,7 +168,7 @@ Inicia primero la API y la web local como se explica arriba. Con un emulador And
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito16-demo.apk
+adb install -r Wallnut-Android-hito17-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

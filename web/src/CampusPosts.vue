@@ -8,7 +8,7 @@ import CampusPostPhoto from './CampusPostPhoto.vue'
 import CampusProfileDialog from './CampusProfileDialog.vue'
 
 type Action = 'create' | 'edit' | 'delete' | 'report'
-const props = defineProps<{ token: string; role: Role }>()
+const props = defineProps<{ token: string; role: Role; postId?: string }>()
 const emit = defineEmits<{ expired: [] }>()
 const actionTitles: Record<Action, string> = {
   create: 'Nueva publicación',
@@ -52,6 +52,12 @@ async function load(append = false) {
   loading.value = true
   problem.value = ''
   try {
+    if (props.postId) {
+      posts.value = [await api<CampusPost>(`/posts/${props.postId}`, { token: props.token })]
+      more.value = false
+      loaded.value = true
+      return
+    }
     const from = append ? offset : 0
     const rows = await api<CampusPost[]>(`/posts?offset=${from}`, { token: props.token })
     const page = rows.slice(0, postPageSize)
@@ -155,7 +161,7 @@ async function submit() {
       notice.value = 'Reporte enviado a administración.'
     }
     dialog.value?.close()
-    if (mode === 'create' || mode === 'delete') await load()
+    if ((mode === 'create' || mode === 'delete') && !props.postId) await load()
   } catch (error) {
     handleError(error, dialogProblem)
   } finally {
@@ -175,10 +181,10 @@ onBeforeUnmount(() => {
     <div class="section-heading">
       <h2 id="campus-posts-title">{{ showingReports ? 'Moderación de publicaciones' : 'Publicaciones' }}</h2>
       <div class="workshop-actions">
-        <button v-if="role === 'admin'" class="button secondary" type="button" @click="toggleReports">
+        <button v-if="role === 'admin' && !postId" class="button secondary" type="button" @click="toggleReports">
           {{ showingReports ? 'Ver publicaciones' : 'Revisar reportes' }}
         </button>
-        <button v-if="role !== 'staff' && !showingReports" class="button primary" type="button"
+        <button v-if="role !== 'staff' && !showingReports && !postId" class="button primary" type="button"
           :disabled="loading || saving" @click="open('create')">
           <Plus :size="18" aria-hidden="true" /> Crear publicación
         </button>

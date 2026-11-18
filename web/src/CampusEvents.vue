@@ -4,19 +4,10 @@ import { CalendarDays, MapPin, Plus } from '@lucide/vue'
 import { api, errorText, RequestError, type Role } from './client'
 import CampusProfileDialog from './CampusProfileDialog.vue'
 import TournamentDialog from './TournamentDialog.vue'
+import { eventCategories as categories, type EventCategory as Category, type TournamentFormat, type EventCard } from './campusEvents'
 
-const props = defineProps<{ token: string; role: Role }>()
+const props = defineProps<{ token: string; role: Role; eventId?: string }>()
 const emit = defineEmits<{ expired: [] }>()
-const categories = { workshop: 'Taller', tournament: 'Torneo', campus: 'Encuentro' }
-type Category = keyof typeof categories
-type TournamentFormat = 'individual' | 'doubles'
-type EventCard = {
-  id: string; title: string; description: string; category: Category; starts_at: string
-  location: string; capacity: number; organizer: string; institutional: boolean; cancelled: boolean
-  organizer_id: string; organizer_profile_visible: boolean
-  mine: boolean; upcoming: boolean; attendees: number; enrolled: boolean; registration_open: boolean
-  tournament_format: TournamentFormat
-}
 const defaults = {
   title: '', description: '', location: '', start: '', category: 'tournament' as Category, capacity: 16,
   tournament_format: 'individual' as TournamentFormat,
@@ -50,6 +41,11 @@ async function perform(action: () => Promise<void>) {
 }
 
 async function fetchEvents(append = false) {
+  if (props.eventId) {
+    events.value = [await api<EventCard>(`/campus-events/${props.eventId}`, { token: props.token })]
+    more.value = false
+    return
+  }
   const rows = await api<EventCard[]>(`/campus-events?offset=${append ? events.value.length : 0}`, { token: props.token })
   more.value = rows.length > 20
   events.value = [...(append ? events.value : []), ...rows.slice(0, 20)]
@@ -98,7 +94,7 @@ onMounted(() => perform(fetchEvents))
   <section class="campus-events" aria-labelledby="campus-events-heading">
     <div class="section-heading">
       <div><h2 id="campus-events-heading">Eventos del campus</h2><p>Talleres, encuentros y torneos de la comunidad.</p></div>
-      <button v-if="role !== 'staff'" class="button primary" type="button" :disabled="busy" @click="creating = !creating">
+      <button v-if="role !== 'staff' && !eventId" class="button primary" type="button" :disabled="busy" @click="creating = !creating">
         <Plus :size="18" aria-hidden="true" /> {{ creating ? 'Cerrar formulario' : 'Crear evento' }}
       </button>
     </div>

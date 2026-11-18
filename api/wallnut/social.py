@@ -108,6 +108,20 @@ def list_posts(account: CurrentAccount, db: Database, response: Response, offset
     ).fetchall()
 
 
+@router.get("/posts/{post_id}", response_model=CampusPost)
+def read_post(post_id: UUID, account: CurrentAccount, db: Database, response: Response):
+    response.headers.update(PRIVATE_CACHE)
+    row = db.execute(
+        "SELECT " + POST_FIELDS + POSTS + """
+        WHERE s.id = %(id)s AND s.deleted_at IS NULL
+          AND (s.hidden_at IS NULL OR s.author_id = %(viewer)s)
+        """, {"id": post_id, "viewer": account.id},
+    ).fetchone()
+    if not row:
+        raise post_not_found()
+    return row
+
+
 @router.post("/posts", response_model=CampusPost, status_code=201)
 def create_post(account: CurrentAccount, db: Database, response: Response, id: Annotated[UUID, Form()],
                 body: PostBody = "", photo: PostPhoto = None):

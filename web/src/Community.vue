@@ -11,6 +11,8 @@ import ParticipationRanking from './ParticipationRanking.vue'
 import PilotMetricsView from './PilotMetricsView.vue'
 import CampusEvents from './CampusEvents.vue'
 import CampusPosts from './CampusPosts.vue'
+import CommunityFeed from './CommunityFeed.vue'
+import type { FeedTarget } from './communityFeed'
 import ArdiHelp from './ArdiHelp.vue'
 import { api, errorText, localDemo, RequestError, type Account, type Application, type Course, type WorkshopCall } from './client'
 
@@ -34,6 +36,7 @@ const sections = [
   { id: 'calls', label: 'Convocatorias' },
 ] as const
 const section = ref<typeof sections[number]['id']>('all')
+const focusedEntry = ref<FeedTarget>()
 const helpOpen = ref(false)
 const view = ref<'community' | 'groups' | 'agenda' | 'wallet' | 'grade' | 'ardy' | 'ranking' | 'metrics'>(
   props.account.role === 'admin' ? 'groups' : 'community',
@@ -54,6 +57,7 @@ const schedule = reactive({ starts_at: '', ends_at: '', location: '', capacity: 
 const hasMore = ref(false)
 const pageSize = 25
 let offset = 0
+let callsRevision = 0
 
 const filteredCalls = computed(() => calls.value.filter((item) => {
   if (filter.value === 'open') return item.open
@@ -80,8 +84,9 @@ const roleHome = {
 
 function navigateFromHelp(destination: 'community' | 'events' | 'posts' | 'calls' | 'agenda' | 'groups' | 'wallet' | 'ardy' | 'ranking') {
   helpOpen.value = false
+  focusedEntry.value = undefined
   if (destination === 'events' || destination === 'posts' || destination === 'calls') {
-    section.value = destination
+    selectSection(destination)
     view.value = 'community'
   } else {
     if (destination === 'community') section.value = 'all'
@@ -100,21 +105,42 @@ function handleError(error: unknown, target: typeof problem) {
 }
 
 async function loadCalls(append = false) {
-  if (loading.value) return
+  if (append && loading.value) return
+  const revision = ++callsRevision
   loading.value = true
   problem.value = ''
   try {
     const currentOffset = append ? offset : 0
-    const batch = await api<WorkshopCall[]>(
-      `/workshop-calls?offset=${currentOffset}&limit=${pageSize}`, { token: props.token },
-    )
+    const target = focusedEntry.value
+    const batch = target?.kind === 'call'
+      ? [await api<WorkshopCall>(`/workshop-calls/${target.id}`, { token: props.token })]
+      : await api<WorkshopCall[]>(`/workshop-calls?offset=${currentOffset}&limit=${pageSize}`, { token: props.token })
+    if (revision !== callsRevision) return
     calls.value = append ? [...calls.value, ...batch] : batch
     offset = currentOffset + batch.length
-    hasMore.value = batch.length === pageSize
+    hasMore.value = !target && batch.length === pageSize
   } catch (error) {
-    handleError(error, problem)
+    if (revision === callsRevision) handleError(error, problem)
   } finally {
-    loading.value = false
+    if (revision === callsRevision) loading.value = false
+  }
+}
+
+function selectSection(value: typeof sections[number]['id']) {
+  section.value = value
+  focusedEntry.value = undefined
+  problem.value = ''
+  if (value === 'calls') void loadCalls()
+}
+
+function openFeedEntry(entry: FeedTarget) {
+  focusedEntry.value = { kind: entry.kind, id: entry.id }
+  section.value = { post: 'posts', event: 'events', call: 'calls' }[entry.kind] as typeof section.value
+  filter.value = 'all'
+  problem.value = ''
+  if (entry.kind === 'call') {
+    calls.value = []
+    void loadCalls()
   }
 }
 
@@ -296,25 +322,29 @@ async function confirmEnrollment() {
 
       <div class="filters campus-feed-filters" role="group" aria-label="Contenido de Comunidad">
         <button v-for="entry in sections" :key="entry.id" class="filter" type="button"
-          :aria-pressed="entry.id === section" @click="section = entry.id">{{ entry.label }}</button>
+          :aria-pressed="entry.id === section" @click="selectSection(entry.id)">{{ entry.label }}</button>
       </div>
-      <CampusEvents v-if="section === 'all' || section === 'events'" :token="token" :role="account.role"
+      <button v-if="focusedEntry" class="button quiet" type="button" @click="selectSection('all')">Volver al feed</button>
+      <CommunityFeed v-if="section === 'all'" :token="token" @open="openFeedEntry" @expired="emit('expired')" />
+      <CampusEvents v-if="section === 'events'" :key="focusedEntry?.id ?? 'events'" :token="token" :role="account.role"
+        :event-id="focusedEntry?.kind === 'event' ? focusedEntry.id : undefined"
         @expired="emit('expired')" />
-      <CampusPosts v-if="section === 'all' || section === 'posts'" :token="token" :role="account.role"
+      <CampusPosts v-if="section === 'posts'" :key="focusedEntry?.id ?? 'posts'" :token="token" :role="account.role"
+        :post-id="focusedEntry?.kind === 'post' ? focusedEntry.id : undefined"
         @expired="emit('expired')" />
 
-      <template v-if="section === 'all' || section === 'calls'">
+      <template v-if="section === 'calls'">
       <div class="section-heading">
         <div>
           <h2>Convocatorias</h2>
           <p v-if="isStudent">Postúlate para orientar un taller en el campus.</p>
         </div>
-        <button v-if="isFaculty && courses.length" class="button primary" @click="openDialog('create')">
+        <button v-if="isFaculty && courses.length && !focusedEntry" class="button primary" @click="openDialog('create')">
           <Plus :size="18" aria-hidden="true" /> Publicar convocatoria
         </button>
       </div>
 
-      <div class="filters" aria-label="Filtrar convocatorias">
+      <div v-if="!focusedEntry" class="filters" aria-label="Filtrar convocatorias">
         <button v-for="item in filters.filter((item) => item.id !== 'mine' || isStudent)"
           :key="item.id" class="filter" :aria-pressed="filter === item.id"
           @click="filter = item.id">{{ item.label }}</button>
