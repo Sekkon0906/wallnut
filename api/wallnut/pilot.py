@@ -28,7 +28,10 @@ def validate_settings():
         raise PilotError("WALLNUT_PUBLIC_ORIGIN debe contener el origen HTTPS del piloto.") from error
 
     ids = [item.strip() for item in os.environ.get("GOOGLE_CLIENT_IDS", "").split(",") if item.strip()]
-    if not ids or any(not fullmatch(r"[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com", item) for item in ids):
+    oauth_pending = os.environ.get("WALLNUT_ALLOW_UNCONFIGURED_OAUTH") == "true"
+    if (not ids and not oauth_pending) or any(
+        not fullmatch(r"[a-zA-Z0-9_-]+\.apps\.googleusercontent\.com", item) for item in ids
+    ):
         raise PilotError("Configura GOOGLE_CLIENT_IDS con los identificadores OAuth de Google.")
 
     try:
@@ -50,7 +53,7 @@ def main():
     parser = argparse.ArgumentParser(description="Comprobación y arranque del piloto de Wallnut.")
     parser.add_argument("--check", action="store_true", help="Comprueba el entorno sin modificar la base.")
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8080)
+    parser.add_argument("--port", type=int, default=os.environ.get("PORT", "8080"))
     args = parser.parse_args()
 
     try:

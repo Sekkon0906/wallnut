@@ -51,7 +51,19 @@ def test_pilot_settings_require_https_and_a_dedicated_database(monkeypatch, tmp_
         configured.setenv("GOOGLE_CLIENT_IDS", "")
         with pytest.raises(PilotError, match="GOOGLE_CLIENT_IDS"):
             validate_settings()
+        configured.setenv("WALLNUT_ALLOW_UNCONFIGURED_OAUTH", "true")
+        validate_settings()
+        configured.setenv("GOOGLE_CLIENT_IDS", "mal-configurado")
+        with pytest.raises(PilotError, match="GOOGLE_CLIENT_IDS"):
+            validate_settings()
     with monkeypatch.context() as configured:
         configured.setenv("DATABASE_URL", "postgresql://localhost/wallnut_demo")
         with pytest.raises(PilotError, match="distinta de wallnut_demo"):
             validate_settings()
+
+
+def test_hosted_app_without_oauth_keeps_login_and_campus_locked(client, monkeypatch):
+    monkeypatch.delenv("GOOGLE_CLIENT_IDS", raising=False)
+    hosted = TestClient(create_app())
+    assert hosted.post("/v1/session", json={"credential": "demo-student"}).status_code == 503
+    assert hosted.get("/v1/campus-events").status_code == 401

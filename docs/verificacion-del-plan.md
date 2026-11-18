@@ -8,14 +8,14 @@ Wallnut usa el [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md) como
 
 | Módulo | Disponible para probar | Pendiente del piloto |
 |---|---|---|
-| Identidad y roles | Sesiones y funciones por rol, con verificación de identidad simulada en las pruebas. | Probar OAuth con el dominio, el cliente autorizado y cuentas reales de los tres roles. |
+| Identidad y roles | Sesiones y funciones por rol con identidad simulada en las pruebas. Railway mantiene el acceso cerrado durante la preparación de Google. | Registrar el origen HTTPS en el cliente OAuth y probar cuentas institucionales de los tres roles. |
 | Comunidad y perfiles | Eventos, publicaciones con foto, perfiles voluntarios, reportes y moderación. Comunidad organiza el contenido por secciones. | Definir responsables y tiempos de moderación. Revisar si hace falta ordenar todas las fuentes en una sola lista. |
 | Talleres y evidencias | Convocatoria, agenda, inscripción, asistencia, entrega, revisión y recompensa. Reprogramación y cancelación con historial. Lista de inscritos y control de asistencia para el docente asignado. | Probar el QR y el código manual entre dos equipos y verificar que los inscritos encuentran los avisos de agenda. |
 | Billetera y canje académico | Saldos y movimientos, transferencias internas, cupos docentes y canje con nota simulada. | Acordar con el tutor la elegibilidad y la procedencia de los Coins usados para canjear Points. |
 | Ardy y ranking | Editor con vistas 2D y 3D, armario, tienda, nueces y ranking voluntario. | Probar interacción y rendimiento en iPhone y Android físicos. |
 | Eventos y torneos | Modalidad individual y por parejas, inscripciones, cuadro, pase directo, marcadores y campeón. | Validar un torneo real con organizador y estudiantes. Confirmar la disponibilidad del espacio por el canal institucional. |
 | Ayuda de Ardi | Temas frecuentes y preguntas en español con accesos según el rol. | Revisar las preguntas sin respuesta durante el piloto y ajustar las guías. |
-| Operación y evaluación | Pruebas de API, APK de demostración, arranque con Compose, restauración de prueba e informe semanal exportable. | Habilitar el entorno HTTPS institucional, probar iPhone y Android físicos, configurar respaldos y acordar metas y muestra con el tutor. |
+| Operación y evaluación | Web y API en HTTPS en Railway, PostgreSQL privado con volumen, arranque con Compose, restauración de prueba e informe semanal exportable. | Probar iPhone y Android físicos, configurar respaldos y acordar metas y muestra con el tutor. |
 
 ## Alcance de torneos por parejas
 

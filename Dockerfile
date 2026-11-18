@@ -6,7 +6,9 @@ COPY web/index.html web/tsconfig.json web/vite.config.ts ./
 COPY web/public ./public
 COPY web/src ./src
 ARG VITE_GOOGLE_CLIENT_ID
-RUN test -n "$VITE_GOOGLE_CLIENT_ID" && VITE_DEMO=false npm run build
+ARG WALLNUT_ALLOW_UNCONFIGURED_OAUTH=false
+RUN (test -n "$VITE_GOOGLE_CLIENT_ID" || test "$WALLNUT_ALLOW_UNCONFIGURED_OAUTH" = true) \
+    && VITE_DEMO=false npm run build
 
 FROM python:3.11-slim
 ENV PYTHONDONTWRITEBYTECODE=1 \

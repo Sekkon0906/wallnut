@@ -1,8 +1,35 @@
 # Despliegue del piloto institucional
 
-El piloto sirve la web instalable y la API desde el mismo origen. La app escucha en el servidor local y PostgreSQL queda en la red interna de Compose. El proxy institucional publica el servicio con un certificado HTTPS válido.
+## Railway
 
-## Configurar y arrancar
+Wallnut sirve la web instalable y la API desde el mismo dominio HTTPS. El servicio `wallnut` usa el Dockerfile de la raíz, aplica las migraciones al arrancar y conecta con `Postgres` por la red privada de Railway. PostgreSQL conserva su volumen y se opera desde el proyecto de Railway.
+
+### Variables del servicio `wallnut`
+
+| Variable | Valor |
+| --- | --- |
+| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` |
+| `WALLNUT_PUBLIC_ORIGIN` | El origen HTTPS público de Wallnut, sin ruta |
+| `PORT` | `8080` para el dominio configurado con ese puerto de destino |
+| `VITE_GOOGLE_CLIENT_ID` | ID público del cliente OAuth web de Wallnut en Google |
+| `GOOGLE_CLIENT_IDS` | `${{VITE_GOOGLE_CLIENT_ID}}` |
+| `WEB_ORIGINS` | `https://localhost` cuando se pruebe un APK con la interfaz empaquetada |
+
+Para publicar la web mientras se prepara Google, define `WALLNUT_ALLOW_UNCONFIGURED_OAUTH=true`. Sin cliente OAuth, la web muestra que el acceso está pendiente y la API rechaza todo intento de inicio de sesión. Al activar Google, registra el origen HTTPS en los orígenes JavaScript autorizados del cliente web, configura ambas variables de Google y retira el modo temporal. El cambio requiere una compilación nueva, porque Vite incorpora el ID en la interfaz.
+
+La [configuración de Railway](../.railway/railway.ts) declara el Dockerfile y comprueba `/v1/ready` antes de enviar tráfico al nuevo despliegue. Para aplicarla desde la raíz, usa `npm ci --prefix .railway`, revisa `railway config plan` y ejecuta `railway config apply`. Las variables y el volumen se administran en Railway. En Windows el CLI necesita encontrar el ejecutable `railway.exe` directamente en el `PATH` para evaluar el archivo TypeScript.
+
+```sh
+railway up --service wallnut
+```
+
+Entra por HTTPS y verifica la portada, `/manifest.webmanifest`, `/sw.js` y `/v1/ready`. Una vez configurado Google, una cuenta institucional de personal debe entrar por primera vez antes de ejecutar `python -m wallnut.administration <correo-institucional>` en el servicio para crear la primera cuenta administradora. Usa los controles de respaldo del volumen de PostgreSQL en Railway y verifica la recuperación en un entorno aparte.
+
+[Documentación de Railway para PostgreSQL](https://docs.railway.com/databases/postgresql). [Configuración del acceso de Google](https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid).
+
+## Docker Compose
+
+La app escucha en el servidor local y PostgreSQL queda en la red interna de Compose. El proxy institucional publica el servicio con un certificado HTTPS válido.
 
 1. Reserva un dominio de prueba y registra su origen HTTPS en el cliente OAuth web de Google Workspace. Confirma con el responsable institucional que las cuentas de prueba puedan usar el cliente.
 2. Copia `.env.pilot.example` a `.env.pilot`. Define el origen, el identificador OAuth web y una contraseña exclusiva para la base. El mismo identificador OAuth configura el frontend y la API. Usa `WALLNUT_ANDROID_ORIGIN` cuando se prepare un APK con la interfaz empaquetada.
