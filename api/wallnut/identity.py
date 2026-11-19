@@ -168,7 +168,8 @@ def exchange_google_credential(body: GoogleSignIn, request: Request, response: R
 
 
 @router.get("", response_model=Account)
-def session(account: CurrentAccount):
+def session(account: CurrentAccount, response: Response):
+    response.headers["Cache-Control"] = "private, no-store"
     return account
 
 

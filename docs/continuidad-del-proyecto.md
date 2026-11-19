@@ -1,10 +1,10 @@
 # Wallnut · Continuidad del proyecto
 
-**Punto de partida para la siguiente ronda · 18 de noviembre de 2026**
+**Punto de partida para la siguiente ronda · 19 de noviembre de 2026**
 
 ## Referencias compartidas
 
-- La rama `main` de [Wallnut](https://github.com/Sekkon0906/wallnut) contiene el producto activo. La versión [0.22.0](https://github.com/Sekkon0906/wallnut/releases/tag/v0.22.0) agrega el aviso de conexión y recuperación sin repetir envíos, con nueve pruebas de transporte y conexión en la web. La revisión desplegada se consulta en Railway. El primer prototipo está en [archivo/prototipo-flutter](https://github.com/Sekkon0906/wallnut/tree/archivo/prototipo-flutter).
+- La rama `main` de [Wallnut](https://github.com/Sekkon0906/wallnut) contiene el producto activo. La versión [0.23.0](https://github.com/Sekkon0906/wallnut/releases/tag/v0.23.0) agrega la retención de sesión elegida por el usuario, la verificación antes de recuperar la cuenta y el cierre en las pestañas que comparten esa sesión. La revisión desplegada se consulta en Railway. El primer prototipo está en [archivo/prototipo-flutter](https://github.com/Sekkon0906/wallnut/tree/archivo/prototipo-flutter).
 - El [plan actualizado](plan-de-desarrollo-y-arquitectura.md) concentra el alcance, los pendientes y las condiciones de cierre. El [registro de verificación](verificacion-del-plan.md) contiene los recorridos y el [manual de despliegue](despliegue-del-piloto.md) explica Railway y la conexión con PostgreSQL.
 - La [guía del piloto](manual-del-piloto.md), la [matriz de aceptación](matriz-de-aceptacion.md) y el [protocolo de evaluación](protocolo-de-evaluacion.md) preparan el ensayo por rol y el registro del informe de grado. Sus resultados institucionales se completan durante el piloto.
 - La [bitácora de Obsidian](https://github.com/Sekkon0906/boveda-obsidian/tree/main/Proyectos/Wallnut) reúne las decisiones, las entregas y las copias del plan y la guía. Los detalles de implementación y cambios de código se versionan en el repositorio de Wallnut.

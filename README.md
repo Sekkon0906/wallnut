@@ -31,6 +31,7 @@ La [guía de despliegue del piloto](docs/despliegue-del-piloto.md) incluye el ar
 - En **Mi Ardy**, cada estudiante puede guardar una ardilla 2D con altura, complexión, pelaje, cola, prendas y accesorios personalizables.
 - El ranking suma Points acreditados por evidencias de participación. Los canjes de Coins y los ajustes de nota quedan fuera del cálculo. Cada estudiante decide si muestra su nombre y su Ardy en la clasificación.
 - Al recargar la pestaña, Wallnut verifica la sesión y abre el espacio del rol correspondiente. Administración entra directamente a la gestión académica.
+- Al entrar puedes elegir **Mantener sesión en este dispositivo**. En otra apertura se verifica su vigencia con el servidor. Cerrar sesión retira esa credencial guardada y comunica el cierre a las pestañas que usan la misma sesión.
 - El estudiante puede indicar su carrera, aplicar una apariencia inicial por área y adquirir accesorios en la tienda de Ardy con Coins.
 - La tienda ofrece nueces sorpresa que se abren con tres toques y desbloquean prendas para el armario de Ardy.
 - La tarjeta virtual permite cobrar y pagar Ardi Coins entre estudiantes por QR o código manual. El color se guarda en ese navegador o app. Las transacciones aparecen en ambas billeteras.
@@ -195,7 +196,7 @@ Inicia primero la API y la web local como se explica arriba. Con un emulador And
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito22-demo.apk
+adb install -r Wallnut-Android-hito23-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

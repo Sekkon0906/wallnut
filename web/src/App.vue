@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { Capacitor } from '@capacitor/core'
 import { GraduationCap } from '@lucide/vue'
 import type { Account } from './client'
@@ -7,24 +7,32 @@ import { api, errorText, RequestError } from './client'
 import SignIn from './SignIn.vue'
 import Community from './Community.vue'
 import ConnectionStatus from './ConnectionStatus.vue'
+import { rememberedSessionKey, SessionStore } from './sessionStorage'
 
 const token = ref('')
 const account = ref<Account | null>(null)
 const busy = ref(false)
 const message = ref('')
 const native = Capacitor.isNativePlatform()
-const sessionKey = 'wallnut.session'
-const saved = ref('')
-try { saved.value = sessionStorage.getItem(sessionKey) ?? '' } catch { /* La sesión puede mantenerse en memoria. */ }
+const store = new SessionStore(() => window.sessionStorage, () => window.localStorage)
+const initial = store.read()
+const saved = ref(initial.token)
+const remember = ref(initial.remembered)
+const storageNotice = ref('')
 const restoring = ref(Boolean(saved.value))
 const roleNames = { student: 'Estudiante', faculty: 'Docente', admin: 'Administración', staff: 'Personal' }
 let sessionRevision = 0
 
-function setSession(value: string, user: Account) {
+function setSession(value: string, user: Account, loginPreference?: boolean) {
   token.value = value
   account.value = user
   saved.value = value
-  try { sessionStorage.setItem(sessionKey, value) } catch { /* La sesión puede mantenerse en memoria. */ }
+  if (loginPreference === undefined) store.cacheInTab(value)
+  else {
+    remember.value = store.saveLogin(value, loginPreference)
+    storageNotice.value = loginPreference && !remember.value
+      ? 'Este dispositivo no permitió conservar la sesión para otra apertura. Puedes continuar en esta pantalla.' : ''
+  }
 }
 
 async function restore() {
@@ -44,18 +52,29 @@ async function restore() {
     if (revision === sessionRevision) restoring.value = false
   }
 }
-onMounted(restore)
+function sessionChanged(event: StorageEvent) {
+  const current = token.value || saved.value
+  if (event.key === rememberedSessionKey && current && event.oldValue === current && event.newValue === null) {
+    clearSession('La sesión se cerró en otra pestaña. Vuelve a ingresar.')
+  }
+}
+onMounted(() => {
+  window.addEventListener('storage', sessionChanged)
+  void restore()
+})
+onBeforeUnmount(() => window.removeEventListener('storage', sessionChanged))
 
 async function signIn(credential: string) {
   if (busy.value) return
   const revision = ++sessionRevision
+  const keep = remember.value
   busy.value = true
   message.value = ''
   try {
     const session = await api<{ token: string; account: Account }>('/session', {
       method: 'POST', data: { credential },
     })
-    if (revision === sessionRevision) setSession(session.token, session.account)
+    if (revision === sessionRevision) setSession(session.token, session.account, keep)
   } catch (error) {
     if (revision === sessionRevision) message.value = errorText(error)
   } finally {
@@ -64,13 +83,15 @@ async function signIn(credential: string) {
 }
 
 function clearSession(notice = '') {
+  store.clear(token.value || saved.value)
   sessionRevision++
   busy.value = false
   restoring.value = false
   token.value = ''
   account.value = null
   saved.value = ''
-  try { sessionStorage.removeItem(sessionKey) } catch { /* La sesión en memoria ya se cerró. */ }
+  remember.value = false
+  storageNotice.value = ''
   message.value = notice
 }
 
@@ -101,6 +122,7 @@ async function signOut() {
     </div>
   </header>
   <ConnectionStatus />
+  <p v-if="storageNotice" class="session-storage-note state-note" role="status">{{ storageNotice }}</p>
   <Community v-if="account" :key="token" :account="account" :token="token" @expired="sessionExpired" />
   <main v-else-if="busy || saved" class="launch-screen">
     <section class="tile launch-panel">
@@ -117,5 +139,9 @@ async function signOut() {
       </template>
     </section>
   </main>
-  <SignIn v-else :message="message" :native="native" @sign-in="signIn" />
+  <SignIn v-else :message="message" :native="native" :remember="remember" @remember="remember = $event" @sign-in="signIn" />
 </template>
+
+<style scoped>
+.session-storage-note { max-width: 1180px; margin: 14px auto; padding-inline: 20px; }
+</style>

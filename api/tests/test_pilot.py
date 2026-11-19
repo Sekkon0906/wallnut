@@ -96,6 +96,19 @@ def test_verified_signup_and_logout(client):
     assert client.get("/v1/session", headers=student).status_code == 401
 
 
+def test_expired_session_cannot_restore_private_account_data(client):
+    headers, account = sign_in(client, "demo-student")
+    current = client.get("/v1/session", headers=headers)
+    assert current.status_code == 200 and current.json()["id"] == account["id"]
+    assert current.headers["cache-control"] == "private, no-store"
+    with connect() as db:
+        db.execute("UPDATE sessions SET expires_at = now() - interval '1 second' WHERE account_id = %s",
+                   (account["id"],))
+    expired = client.get("/v1/session", headers=headers)
+    assert expired.status_code == 401
+    assert account["email"] not in expired.text and account["id"] not in expired.text
+
+
 def test_campus_and_confirmed_student_enrollment(client):
     admin, faculty, course = setup_campus(client)
     student, maria = sign_in(client, "demo-student")

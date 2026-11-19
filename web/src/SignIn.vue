@@ -4,12 +4,16 @@ import { ArrowRight, BookOpen, ShieldCheck } from '@lucide/vue'
 import { googleClientId, localDemo } from './client'
 import { renderGoogleSignIn } from './google'
 
-const props = defineProps<{ message: string; native: boolean }>()
-const emit = defineEmits<{ signIn: [credential: string] }>()
+const props = defineProps<{ message: string; native: boolean; remember: boolean }>()
+const emit = defineEmits<{ signIn: [credential: string]; remember: [value: boolean] }>()
 const button = ref<HTMLElement>()
 const googleError = ref('')
 const nativeBusy = ref(false)
 let nativeSetup: Promise<void> | undefined
+
+function rememberChanged(event: Event) {
+  emit('remember', (event.target as HTMLInputElement).checked)
+}
 
 async function nativeSignIn() {
   if (nativeBusy.value) return
@@ -54,6 +58,9 @@ onMounted(async () => {
       <ShieldCheck :size="30" class="accent-icon" aria-hidden="true" />
       <h2>Entra a Wallnut</h2>
       <p>Usa tu cuenta institucional de Google.</p>
+      <label class="remember-session"><input type="checkbox" :checked="remember" :disabled="nativeBusy"
+        @change="rememberChanged" /> Mantener sesión en este dispositivo</label>
+      <p class="remember-description">Elige esta opción en tu dispositivo personal. La sesión conserva su vigencia y puedes cerrarla al terminar.</p>
       <div v-if="!native && googleClientId" ref="button" class="google-area"></div>
       <button v-else-if="native && googleClientId" class="button secondary"
         :disabled="nativeBusy" @click="nativeSignIn">{{ nativeBusy ? 'Abriendo Google…' : 'Continuar con Google' }}</button>
@@ -84,3 +91,9 @@ onMounted(async () => {
     </section>
   </main>
 </template>
+
+<style scoped>
+.remember-session { display: flex; align-items: start; gap: 8px; margin-block: 16px 5px; font-size: .9rem; }
+.remember-session input { width: 18px; min-width: 18px; min-height: 18px; margin: 1px 0 0; accent-color: var(--blue); }
+.remember-description { margin-top: 0; color: var(--muted); font-size: .8rem; line-height: 1.5; }
+</style>

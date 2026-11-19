@@ -1,6 +1,6 @@
 # Guía del piloto de Wallnut
 
-**Aplicación 0.22.0 · Universidad de Ibagué · 18 de noviembre de 2026**
+**Aplicación 0.23.0 · Universidad de Ibagué · 19 de noviembre de 2026**
 
 Wallnut reúne actividades del campus, apoyo académico, una billetera interna y la personalización de Ardy. Ardi Points y Ardi Coins son unidades internas sin valor monetario. Los canjes académicos de este piloto usan notas simuladas.
 
@@ -9,6 +9,8 @@ Esta guía describe las funciones disponibles. El acceso institucional de la [we
 ## Entrar y orientarse
 
 En el entorno institucional, entra con tu cuenta de Google de la Universidad. Wallnut verifica el correo y presenta las secciones de tu rol. Si falta un grupo o una habilitación docente, solicita al responsable del piloto que revise la asignación de tu cuenta.
+
+**Mantener sesión en este dispositivo** es una elección para tu dispositivo personal y empieza desactivada. Si la activas, otra apertura recupera la credencial y verifica su vigencia con el servidor antes de mostrar tu cuenta. **Cerrar sesión** retira esa sesión guardada y comunica el cierre a otras pestañas que la usan. Si el dispositivo impide guardarla, Wallnut lo informa y permite continuar en la pantalla abierta. Una sesión vencida requiere volver a entrar.
 
 La web se puede abrir desde el navegador o desde el acceso que instales en la pantalla de inicio. En iPhone el recorrido previsto usa Safari. El APK descargable actual es de demostración y necesita el servidor local descrito en el README. La instalación y el acceso institucional en teléfonos físicos forman parte del ensayo pendiente.
 

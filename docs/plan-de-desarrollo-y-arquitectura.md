@@ -1,6 +1,6 @@
 # Wallnut · Plan de desarrollo y arquitectura
 
-**Actualizado el 18 de noviembre de 2026 · Proyecto de grado de dos personas · Universidad de Ibagué**
+**Actualizado el 19 de noviembre de 2026 · Proyecto de grado de dos personas · Universidad de Ibagué**
 
 ## 1. Objetivo y punto de partida
 
@@ -11,16 +11,16 @@ La plataforma se entrega como web instalable y comparte interfaz con Android med
 | Referencia | Estado comprobado |
 | --- | --- |
 | Código | La rama `main` de [Wallnut](https://github.com/Sekkon0906/wallnut) es la base activa. El [prototipo Flutter](https://github.com/Sekkon0906/wallnut/tree/archivo/prototipo-flutter) queda como referencia histórica. |
-| Entregables móviles | La [versión 0.22.0](https://github.com/Sekkon0906/wallnut/releases/tag/v0.22.0) incluye un ZIP y un APK de demostración. Ese APK abre el entorno local. |
+| Entregables móviles | La [versión 0.23.0](https://github.com/Sekkon0906/wallnut/releases/tag/v0.23.0) incluye un ZIP y un APK de demostración. Ese APK abre el entorno local. |
 | Despliegue | La [web de Railway](https://wallnut-production.up.railway.app) sirve la API y los recursos de la PWA por HTTPS. La revisión vigente se registra en Railway. PostgreSQL tiene volumen persistente y acceso por red privada. `/v1/ready` devuelve HTTP 200 con el esquema listo. |
 | Inicio de sesión institucional | La API valida tokens de Google y las funciones por rol están implementadas. En Railway el inicio sigue cerrado y responde HTTP 503 hasta configurar el cliente OAuth web. Hacen falta cuentas institucionales para aceptar el piloto. |
-| Verificación | 63 pruebas de API, nueve de transporte y conexión y comprobación de tipos de la web. GitHub Actions ejecuta ambos grupos de pruebas y comprueba compilación, arranque y restauración de PostgreSQL en un entorno de prueba. La prueba con dispositivos físicos sigue pendiente. |
+| Verificación | 64 pruebas de API, 15 de sesión, transporte y conexión y comprobación de tipos de la web. GitHub Actions ejecuta ambos grupos de pruebas y comprueba compilación, arranque y restauración de PostgreSQL en un entorno de prueba. La prueba con dispositivos físicos sigue pendiente. |
 
 ## 2. Estado por sección
 
 | Sección | Qué hay | Qué falta para cerrar el piloto |
 | --- | --- | --- |
-| **Inicio, carga y roles** | Portada, Google institucional, recuperación y cierre de sesión y vistas por rol. Un aviso común permite comprobar la conexión y conserva la pantalla durante una interrupción, con un único intento por solicitud. Tallerista es un permiso sobre una actividad asignada. | Autorizar el origen de Railway en Google, habilitar la primera cuenta administradora y probar permisos, expiración, recarga, cambio de red y cierre con identidades reales. |
+| **Inicio, carga y roles** | Portada, Google institucional y vistas por rol. Se puede elegir conservar la sesión en el dispositivo, siempre con verificación del servidor al recuperar la cuenta. El cierre retira esa credencial y se comunica a las pestañas que la usan. Hay aviso común de conexión. | Autorizar el origen de Railway en Google, habilitar la primera cuenta administradora y probar permisos, expiración, recarga, retención elegida y cierre con identidades reales y teléfonos físicos. |
 | **Comunidad y perfiles** | Feed cronológico con eventos, convocatorias y publicaciones, filtros por procedencia, paginación y apertura del recurso concreto. Hay perfiles voluntarios, fotos, edición, retirada, denuncias y moderación. | Acordar quién modera durante el piloto y verificar la experiencia con cuentas institucionales y dispositivos físicos. |
 | **Convocatorias y talleres** | El docente publica, el estudiante sustenta su postulación y el docente selecciona al tallerista. Agenda con aforo, inscripción, reprogramación y cancelación con motivo. El docente asignado ve su lista privada y el estado de asistencia y evidencias. | Ensayo de extremo a extremo con dos equipos, revisión de avisos de cambios de horario y prueba de roles y concurrencia en el entorno institucional. |
 | **Avisos** | Centro privado con contador y filtro sin leer. Los cambios de agenda llegan a los participantes actuales; las entregas, solicitudes y decisiones académicas llegan al docente o estudiante correspondiente. Cada aviso abre su taller o canje. | Probar los avisos nuevos con cuentas institucionales y confirmar que los usuarios encuentran el recurso y distinguen lo pendiente de lo leído. |
@@ -47,7 +47,7 @@ flowchart LR
     A --> E["Métricas agregadas para Administración"]
 ```
 
-- **Interfaz y contratos.** Vue y TypeScript. `web/src/client.ts` centraliza los contratos de API. `transport.ts` conserva autenticación, tiempos de espera, privacidad de caché y un único intento por solicitud. `connectivity.ts` ordena las observaciones para descartar resultados antiguos y `ConnectionStatus.vue` permite comprobar la recuperación sin recargar la vista. Las pantallas usan los permisos que devuelve el servidor y conservan estados de carga, confirmación y error.
+- **Interfaz y contratos.** Vue y TypeScript. `web/src/client.ts` centraliza los contratos de API. `transport.ts` conserva autenticación, tiempos de espera, privacidad de caché y un único intento por solicitud. `connectivity.ts` ordena sus observaciones y `ConnectionStatus.vue` permite comprobar la recuperación sin recargar. `sessionStorage.ts` conserva la credencial por pestaña o por elección en el dispositivo y retira solo la sesión correspondiente. El servidor verifica vigencia y permisos antes de mostrar la cuenta. Las pantallas conservan estados de carga, confirmación y error.
 - **Identidad y campus.** `identity.py` gestiona cuentas y sesiones. `campus.py` y Administración resuelven roles, grupos y matrículas. El recurso y su actor se validan en la API. Una propuesta para tallerista solo otorga facultades en el taller que le asignaron.
 - **Talleres y evidencias.** `community.py`, `workshops.py`, `workshop_agenda.py` y `evidence.py` cubren convocatoria, agenda, asistencia, entregas y revisión. Las operaciones de aforo y revisión se verifican con solicitudes simultáneas. Las fotos académicas y sociales se guardan en PostgreSQL con reglas de acceso distintas. Revisar almacenamiento de objetos según el tamaño, la retención y el costo observados.
 - **Economía y calificaciones.** `economy.py`, `grades.py`, `coin_payments.py`, `coin_shop.py` y `ardy_nuts.py` calculan elegibilidad, saldo, cupo y precio en el servidor. `wallet_history.py` usa las mismas fuentes que la billetera para consultar movimientos por unidad y referencia y contrastarlos con saldos y reservas. `faculty_ledger.py` reúne las asignaciones y acreditaciones del cupo docente. Las consultas usan una versión consistente de los datos. Las cantidades son enteras y las notas usan milésimas. Al agregar otra fuente de Coins, actualizar su cálculo y la comprobación del historial. Un libro de movimientos común tiene sentido cuando las fuentes actuales dificulten esa verificación.

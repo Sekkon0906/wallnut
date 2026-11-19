@@ -1,6 +1,6 @@
 # Protocolo de evaluación del piloto
 
-**Base de aplicación 0.22.0 · Proyecto de grado de dos personas · 18 de noviembre de 2026**
+**Base de aplicación 0.23.0 · Proyecto de grado de dos personas · 19 de noviembre de 2026**
 
 Este documento prepara la observación de los recorridos de Wallnut y el uso del informe agregado. El tutor y los responsables institucionales acuerdan los participantes, el periodo y las metas antes de aplicar el protocolo. Los resultados del piloto se completan durante su ejecución.
 

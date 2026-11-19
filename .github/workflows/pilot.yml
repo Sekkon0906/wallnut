@@ -21,7 +21,7 @@ jobs:
       - name: Preparar la interfaz
         run: npm ci
         working-directory: web
-      - name: Verificar conexión, transporte y tipos de la interfaz
+      - name: Verificar sesión, conexión y tipos de la interfaz
         run: npm test && npm run check
         working-directory: web
 

@@ -1,6 +1,6 @@
 # Verificación del plan de Wallnut
 
-**Corte · versión 0.22.0**
+**Corte · versión 0.23.0**
 
 Los recorridos de esta nota sirven para comprobar los criterios del [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md). La [web de Railway](https://wallnut-production.up.railway.app) tiene el esquema listo y mantiene cerrado el acceso mientras se configura Google.
 
@@ -34,6 +34,12 @@ La tarjeta muestra hasta diez solicitudes recientes de la cuenta, con prioridad 
 Si la confirmación se interrumpe, la tarjeta ofrece «Consultar resultado» antes de permitir otro intento. Esa consulta recupera el estado sin ejecutar un pago. Las solicitudes muestran su vencimiento al llegar la hora, y un intento con resultado incierto conserva la opción de consultar incluso después de esa hora. Los pagos completados se pueden volver a consultar y los reintentos tienen un único descuento.
 
 La restauración de sesión conserva el intento de recuperación cuando falla la conexión. Las respuestas tardías de una sesión anterior se descartan al cambiar de cuenta. Si el navegador restringe el almacenamiento, la sesión funciona en memoria durante el uso de la página.
+
+## Retención de sesión elegida
+
+«Mantener sesión en este dispositivo» empieza desactivada. Si se elige al entrar, la credencial permite recuperar la sesión en otra apertura. Wallnut consulta al servidor antes de mostrar datos de la cuenta y mantiene su vigencia de servidor. Sin esa elección, se conserva la sesión de la pestaña. El cierre retira la credencial correspondiente y comunica el cierre a las pestañas que la comparten. Si el almacenamiento está restringido, la cuenta puede seguir en memoria y la interfaz informa cuando no logra conservarla.
+
+Las pruebas cubren la compatibilidad con sesiones anteriores, ambas preferencias, restricciones de almacenamiento y el cierre de una sesión antigua sin retirar otra más nueva. La API rechaza una sesión vencida y entrega los datos de cuenta con caché privada desactivada. En el navegador se eligió la retención, se cerró la pestaña y una nueva apertura recuperó la cuenta ficticia. Se verificaron el cierre en dos pestañas, otra apertura sin retención y la vista móvil. La aceptación en iPhone y Android físicos sigue pendiente.
 
 ## Conexión y recuperación
 

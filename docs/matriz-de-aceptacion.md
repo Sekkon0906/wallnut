@@ -1,8 +1,8 @@
 # Matriz de aceptación de Wallnut
 
-**Base de aplicación 0.22.0 · Revisión 54e75c6 · 18 de noviembre de 2026**
+**Base de aplicación 0.23.0 · 19 de noviembre de 2026**
 
-La [ejecución de referencia](https://github.com/Sekkon0906/wallnut/actions/runs/44459540338) aprobó 63 pruebas de API, nueve de transporte y conexión, los tipos de la interfaz y el arranque y restauración del piloto. Esas pruebas usan cuentas y bases de prueba. Las filas siguientes identifican el caso que aporta evidencia para cada requisito.
+La suite de esta entrega contiene 64 pruebas de API y 15 de sesión, transporte y conexión. El [historial de ejecuciones](https://github.com/Sekkon0906/wallnut/actions/workflows/pilot.yml) registra sus resultados, los tipos de la interfaz y el arranque y restauración del piloto. Esas pruebas usan cuentas y bases de prueba. Las filas siguientes identifican el caso que aporta evidencia para cada requisito.
 
 El ensayo institucional continúa pendiente de Google OAuth y de dispositivos físicos. Un resultado automático demuestra el comportamiento cubierto por su prueba. El equipo registra aparte lo observado al ejecutar el recorrido con participantes, roles y equipos del piloto.
 
@@ -11,6 +11,7 @@ El ensayo institucional continúa pendiente de Google OAuth y de dispositivos f�
 | ID | Requisito verificable | Evidencia de referencia |
 | --- | --- | --- |
 | W-ID-01 | Verificar correo institucional, rechazar identidades no admitidas y cerrar la sesión. | [test_verified_signup_and_logout](../api/tests/test_pilot.py) |
+| W-ID-02 | Conservar la sesión solo cuando se elige, retirarla al cerrar y verificar su vigencia antes de recuperar datos privados. | [Almacenamiento de sesión](../web/tests/sessionStorage.test.mjs) y [test_expired_session_cannot_restore_private_account_data](../api/tests/test_pilot.py). |
 | W-ROL-01 | Gestionar grupos y matrículas según el rol autorizado. | [test_campus_and_confirmed_student_enrollment](../api/tests/test_pilot.py) |
 | W-TAL-01 | Publicar una convocatoria y seleccionar un único tallerista ante dos decisiones simultáneas. | [test_only_one_parallel_approval_succeeds](../api/tests/test_pilot.py) |
 | W-AFO-01 | Conservar el aforo ante inscripciones simultáneas y permitir liberar un cupo. | [test_capacity_survives_concurrent_signups_and_cancellation](../api/tests/test_workshops.py) |
@@ -44,7 +45,7 @@ Todas las filas de esta tabla parten en **Pendiente**. El responsable cambia el 
 | Caso | Roles y preparación | Recorrido y resultado esperado | Requisitos |
 | --- | --- | --- | --- |
 | A-01 · Acceso | Cuenta de estudiante, docente y Administración; cuenta externa de prueba. | Entrar, recargar, cerrar y probar acceso a una función de otro rol. La cuenta admitida recupera su vista y los accesos indebidos se rechazan. | W-ID-01, W-ROL-01 |
-| A-02 · Instalación | iPhone y Android físicos con acceso al entorno HTTPS y sesión vigente. | Instalar la PWA desde Safari y abrir Android con su configuración institucional. Cerrar y abrir. El acceso instalado abre Wallnut y recupera la sesión vigente. Verificar cámara y alternativa manual. | W-ID-01, W-OPS-01 |
+| A-02 · Instalación | iPhone y Android físicos con acceso HTTPS. Probar retención activada y desactivada. | Instalar la PWA desde Safari y abrir Android con su configuración institucional. Cerrar y abrir. Con retención elegida, recuperar la sesión vigente tras su verificación. Sin retención, comprobar el cierre del contexto. Cerrar sesión y verificar que otra apertura no la recupera. Probar cámara y alternativa manual. | W-ID-01, W-ID-02, W-OPS-01 |
 | A-03 · Taller | Docente con cupo, tallerista y dos estudiantes. | Convocar, seleccionar, agendar, inscribir y registrar una asistencia por QR y otra por código. La lista docente refleja las mismas cuentas. | W-TAL-01, W-AFO-01, W-ASI-01 |
 | A-04 · Evidencia | Participantes con asistencia y recompensa configurada. | Entregar, devolver con comentario, corregir y aprobar. La foto queda restringida y hay un único abono financiado por el cupo. | W-EVI-01, W-EVI-02, W-PNT-01, W-CUP-01 |
 | A-05 · Meta y nota | Meta verificada, regla y nota base simulada. | Convertir Coins, solicitar un canje aprobado y otro rechazado. Comprobar elegibilidad, reserva, consumo o devolución y nota simulada. | W-MET-01, W-WAL-01, W-NOT-01, W-NOT-02 |
