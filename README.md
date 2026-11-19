@@ -181,13 +181,19 @@ Un canje académico pendiente reserva los Points. Si el docente lo aprueba apare
 
 El contador se consulta al entrar, al volver a la pestaña y cada minuto mientras la página está visible. **Actualizar avisos** permite consultarlos en el momento. Los avisos se conservan en la cuenta al cerrar sesión y se crean al realizar nuevos cambios de agenda, evidencias y canjes.
 
+### Probar una interrupción de conexión
+
+En la demo local, abre **Billetera → Recibir Coins** y escribe una cantidad de prueba. Detén solo la API local y prueba **Generar QR de cobro**. La interfaz conserva el importe y la sesión, muestra el error y ofrece **Comprobar conexión**. Vuelve a iniciar la API y usa esa comprobación. La consulta de disponibilidad mantiene abierta la pantalla y no repite el cobro.
+
+Si se interrumpe un pago, usa **Consultar resultado** en su solicitud antes de otro intento. Al perder la conexión durante un formulario, conserva la vista abierta. Cambiar de sección o recargar puede descartar campos pendientes. La página sin conexión de la PWA también recuerda consultar las operaciones interrumpidas al volver.
+
 ## Probar el APK de demostración
 
 Inicia primero la API y la web local como se explica arriba. Con un emulador Android abierto o un teléfono de desarrollo conectado por USB:
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito21-demo.apk
+adb install -r Wallnut-Android-hito22-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:
@@ -212,6 +218,6 @@ La compilación para el piloto se genera con `VITE_DEMO` desactivado y con el ac
 
 ## Verificación
 
-Desde `api`, instala `requirements-dev.txt`, define `TEST_DATABASE_URL` con una base PostgreSQL para pruebas y ejecuta `python -m pytest -q`. Las pruebas usan un esquema temporal y credenciales simuladas. Cubren talleres, evidencias, billetera, canje académico, ranking, compras, pagos, inscripciones y el cobro único y la apertura de nueces. Desde `web` ejecuta `npm run check` para verificar la interfaz.
+Desde `api`, instala `requirements-dev.txt`, define `TEST_DATABASE_URL` con una base PostgreSQL para pruebas y ejecuta `python -m pytest -q`. Las pruebas usan un esquema temporal y credenciales simuladas. Cubren talleres, evidencias, billetera, canje académico, ranking, compras, pagos, inscripciones y el cobro único y la apertura de nueces. Desde `web`, `npm run check` verifica los tipos de la interfaz y `npm test` ejecuta las pruebas de transporte y conexión con Node 22. GitHub Actions comprueba las tres partes, incluida la compilación y restauración del piloto.
 
 La imagen de Ardy se creó a partir del boceto del proyecto con esta indicación: aislar y redibujar la ardilla naranja como recorte transparente, conservando la cola en espiral, el mechón central, el hocico crema, las gafas redondas y el buzo azul.

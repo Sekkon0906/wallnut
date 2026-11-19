@@ -4,7 +4,7 @@
 
 ## Referencias compartidas
 
-- La rama `main` de [Wallnut](https://github.com/Sekkon0906/wallnut) contiene el producto activo. La versión [0.21.0](https://github.com/Sekkon0906/wallnut/releases/tag/v0.21.0) incorpora avisos privados de agenda, evidencias y canjes con acceso al recurso, contador y marcas de lectura. La revisión desplegada se consulta en Railway. El primer prototipo está en [archivo/prototipo-flutter](https://github.com/Sekkon0906/wallnut/tree/archivo/prototipo-flutter).
+- La rama `main` de [Wallnut](https://github.com/Sekkon0906/wallnut) contiene el producto activo. La versión [0.22.0](https://github.com/Sekkon0906/wallnut/releases/tag/v0.22.0) agrega el aviso de conexión y recuperación sin repetir envíos, con nueve pruebas de transporte y conexión en la web. La revisión desplegada se consulta en Railway. El primer prototipo está en [archivo/prototipo-flutter](https://github.com/Sekkon0906/wallnut/tree/archivo/prototipo-flutter).
 - El [plan actualizado](plan-de-desarrollo-y-arquitectura.md) concentra el alcance, los pendientes y las condiciones de cierre. El [registro de verificación](verificacion-del-plan.md) contiene los recorridos y el [manual de despliegue](despliegue-del-piloto.md) explica Railway y la conexión con PostgreSQL.
 - La [bitácora de Obsidian](https://github.com/Sekkon0906/boveda-obsidian/tree/main/Proyectos/Wallnut) reúne las decisiones, las entregas y las copias del plan y la guía. Los detalles de implementación y cambios de código se versionan en el repositorio de Wallnut.
 
@@ -12,7 +12,7 @@
 
 1. Leer la instrucción del equipo de grado y localizar su etapa y criterio de cierre en el plan. Registrar la revisión base y los módulos afectados.
 2. Revisar el estado del repositorio antes de editar. Para trabajo simultáneo, usar ramas independientes y acordar los archivos o módulos que toma cada sesión. Si una tarea cambia una ruta, un esquema o un tipo compartido, acordar el contrato con quien trabaje sobre ese mismo flujo.
-3. Usar las cuentas de demostración y una base de pruebas para reproducir el recorrido. Las instrucciones de arranque y comandos están en el [README](../README.md). Los cambios de UI se comprueban con `npm run check`; los de API con `python -m pytest -q` y una `TEST_DATABASE_URL` dedicada. Añadir un caso de regresión cuando una regla o un fallo del usuario lo requiera.
+3. Usar las cuentas de demostración y una base de pruebas para reproducir el recorrido. Las instrucciones de arranque y comandos están en el [README](../README.md). Los cambios de UI se comprueban con `npm run check` y las pruebas de conexión con `npm test`; los de API con `python -m pytest -q` y una `TEST_DATABASE_URL` dedicada. Añadir un caso de regresión cuando una regla o un fallo del usuario lo requiera.
 4. Dejar la revisión o el enlace al cambio, los resultados observados y la decisión pendiente en la bitácora al entregar la tarea. Los cambios de roles, saldos, notas y datos privados necesitan revisión del recorrido de extremo a extremo y de los permisos de API.
 
 ## Dos líneas de trabajo posibles

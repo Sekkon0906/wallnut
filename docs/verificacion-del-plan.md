@@ -1,6 +1,6 @@
 # Verificación del plan de Wallnut
 
-**Corte · versión 0.21.0**
+**Corte · versión 0.22.0**
 
 Los recorridos de esta nota sirven para comprobar los criterios del [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md). La [web de Railway](https://wallnut-production.up.railway.app) tiene el esquema listo y mantiene cerrado el acceso mientras se configura Google.
 
@@ -9,6 +9,7 @@ Los recorridos de esta nota sirven para comprobar los criterios del [plan de arq
 | Módulo | Disponible para probar | Pendiente del piloto |
 |---|---|---|
 | Identidad y roles | Sesiones y funciones por rol con identidad simulada en las pruebas. Railway mantiene el acceso cerrado durante la preparación de Google. | Registrar el origen HTTPS en el cliente OAuth y probar cuentas institucionales de los tres roles. |
+| Conexión | Aviso común de interrupción y recuperación, comprobación de disponibilidad y conservación de la pantalla abierta. El transporte hace un intento por solicitud y distingue errores de sesión, de aplicación y de comunicación. | Probar cambios entre datos móviles y wifi en iPhone y Android físicos. |
 | Comunidad y perfiles | Feed cronológico de publicaciones, eventos y convocatorias con filtro por procedencia, paginación y acceso a cada recurso. Fotos y perfiles conservan su visibilidad. | Definir responsables y tiempos de moderación. Probar el recorrido con cuentas institucionales. |
 | Talleres y evidencias | Convocatoria, agenda, inscripción, asistencia, entrega, revisión y recompensa. Reprogramación y cancelación con historial. Lista de inscritos y control de asistencia para el docente asignado. | Probar el QR y el código manual entre dos equipos y verificar que los inscritos encuentran los avisos de agenda. |
 | Avisos | Centro privado con contador, filtro de pendientes y navegación al taller o canje. Avisa de cambios de agenda, entregas y revisiones de evidencias y solicitudes y decisiones de canjes académicos. | Validar la recepción con las cuentas institucionales y la navegación desde un teléfono físico. |
@@ -33,6 +34,14 @@ La tarjeta muestra hasta diez solicitudes recientes de la cuenta, con prioridad 
 Si la confirmación se interrumpe, la tarjeta ofrece «Consultar resultado» antes de permitir otro intento. Esa consulta recupera el estado sin ejecutar un pago. Las solicitudes muestran su vencimiento al llegar la hora, y un intento con resultado incierto conserva la opción de consultar incluso después de esa hora. Los pagos completados se pueden volver a consultar y los reintentos tienen un único descuento.
 
 La restauración de sesión conserva el intento de recuperación cuando falla la conexión. Las respuestas tardías de una sesión anterior se descartan al cambiar de cuenta. Si el navegador restringe el almacenamiento, la sesión funciona en memoria durante el uso de la página.
+
+## Conexión y recuperación
+
+La interfaz avisa cuando el dispositivo informa que quedó sin red, cuando se interrumpe una solicitud o cuando un intermediario responde con un error de servicio sin el mensaje de Wallnut. «Comprobar conexión» consulta la disponibilidad sin repetir el envío anterior. Al volver la red, esa comprobación también se realiza de forma automática. La pantalla permanece abierta, con su sesión y los campos que conservaba esa vista. Cambiar de sección o recargar puede descartar lo que aún no se haya guardado.
+
+Las solicitudes tienen un único intento. Un pago o envío sin respuesta puede haberse registrado, por lo que el aviso pide consultar su resultado antes de repetirlo. La recuperación de pagos conserva su propia acción «Consultar resultado». Los errores con código de sesión siguen su tratamiento habitual y un mensaje específico del servidor se mantiene visible. Una respuesta antigua no sustituye a la observación más reciente de la conexión.
+
+En la demo se detuvo la API con un cobro de 3 Coins en preparación. La interfaz mostró el error del intermediario y mantuvo el importe y la sesión. Al reiniciar la API y pulsar «Comprobar conexión», mostró la recuperación sin crear el cobro. También se comprobó una pantalla estrecha sin desbordamiento. Las nueve pruebas de transporte y conexión cubren respuestas perdidas tras guardar, tiempo de espera, sesión vencida, errores de servicio, fotos con FormData, respuestas truncadas y observaciones fuera de orden.
 
 ## Avisos del campus
 

@@ -6,6 +6,7 @@ import type { Account } from './client'
 import { api, errorText, RequestError } from './client'
 import SignIn from './SignIn.vue'
 import Community from './Community.vue'
+import ConnectionStatus from './ConnectionStatus.vue'
 
 const token = ref('')
 const account = ref<Account | null>(null)
@@ -99,6 +100,7 @@ async function signOut() {
       </div>
     </div>
   </header>
+  <ConnectionStatus />
   <Community v-if="account" :key="token" :account="account" :token="token" @expired="sessionExpired" />
   <main v-else-if="busy || saved" class="launch-screen">
     <section class="tile launch-panel">

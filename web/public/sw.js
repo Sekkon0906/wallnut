@@ -1,4 +1,4 @@
-const offlineCache = 'wallnut-offline-v1'
+const offlineCache = 'wallnut-offline-v2'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(offlineCache).then((cache) => cache.addAll([

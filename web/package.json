@@ -1,11 +1,12 @@
 {
   "name": "wallnut-web",
   "private": true,
-  "version": "0.21.0",
+  "version": "0.22.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "check": "vue-tsc --noEmit",
+    "test": "tsc -p tsconfig.tests.json && node --test tests/*.test.mjs",
     "build": "vue-tsc --noEmit && vite build",
     "android:sync": "npm run build && cap sync android"
   },

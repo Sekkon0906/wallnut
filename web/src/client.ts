@@ -1,3 +1,7 @@
+import { connection } from './connectivity'
+import { createTransport, RequestError, type RequestOptions } from './transport'
+export { RequestError }
+
 export type Role = 'student' | 'staff' | 'faculty' | 'admin'
 
 export interface Account {
@@ -187,61 +191,14 @@ export interface GradeRedemption {
   student: GradeStudent | null
 }
 
-export class RequestError extends Error {
-  constructor(message: string, readonly status: number) {
-    super(message)
-    this.name = 'RequestError'
-  }
-}
-
 export const localDemo = import.meta.env.VITE_DEMO === 'true'
 export const googleClientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '')
 const apiOrigin = String(import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '')
+const request = createTransport(apiOrigin, connection)
 
 export function errorText(error: unknown) {
   if (error instanceof RequestError) return error.message
   return 'No pudimos conectar con Wallnut. Intenta nuevamente.'
-}
-
-type RequestOptions = {
-  token?: string
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
-  data?: object | FormData
-}
-
-async function request<T>(path: string, options: RequestOptions, accept: string,
-                          read: (response: Response) => Promise<T>): Promise<T> {
-  const headers: Record<string, string> = { Accept: accept }
-  if (options.token) headers.Authorization = `Bearer ${options.token}`
-  let body: BodyInit | undefined
-  if (options.data instanceof FormData) {
-    body = options.data
-  } else if (options.data) {
-    headers['Content-Type'] = 'application/json'
-    body = JSON.stringify(options.data)
-  }
-
-  const controller = new AbortController()
-  const timeout = window.setTimeout(() => controller.abort(), body instanceof FormData ? 60000 : 15000)
-  try {
-    const response = await fetch(`${apiOrigin}/v1${path}`, {
-      method: options.method ?? 'GET',
-      headers,
-      body,
-      cache: 'no-store',
-      signal: controller.signal,
-    })
-    if (!response.ok) {
-      const result = await response.json().catch(() => null)
-      const detail = typeof result?.detail === 'string'
-        ? result.detail
-        : 'Revisa los datos y vuelve a intentarlo.'
-      throw new RequestError(detail, response.status)
-    }
-    return await read(response)
-  } finally {
-    window.clearTimeout(timeout)
-  }
 }
 
 export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
