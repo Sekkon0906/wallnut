@@ -6,6 +6,8 @@ El piloto está desplegado en [Railway](https://wallnut-production.up.railway.ap
 
 El [plan de desarrollo y arquitectura](docs/plan-de-desarrollo-y-arquitectura.md) describe qué está implementado y qué se necesita para cerrar el piloto. La [guía de continuidad](docs/continuidad-del-proyecto.md) reúne las referencias y el registro para retomar tareas entre sesiones.
 
+La [guía del piloto por rol](docs/manual-del-piloto.md) explica los recorridos de estudiantes, docentes y Administración. La [matriz de aceptación](docs/matriz-de-aceptacion.md) relaciona requisitos con pruebas y ofrece fichas para el ensayo institucional. El [protocolo de evaluación](docs/protocolo-de-evaluacion.md) reúne observación de tareas, indicadores, preguntas e incidencias.
+
 Los APK y paquetes de cada hito están en [Releases](https://github.com/Sekkon0906/wallnut/releases).
 
 La [guía de despliegue del piloto](docs/despliegue-del-piloto.md) incluye el arranque con Compose y la restauración de prueba de PostgreSQL.

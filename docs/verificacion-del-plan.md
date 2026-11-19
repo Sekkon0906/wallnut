@@ -93,6 +93,8 @@ La [guía de despliegue](despliegue-del-piloto.md) reúne la configuración, el 
 
 Una ronda de aceptación requiere un entorno HTTPS, una cuenta de cada rol y al menos un iPhone y un Android físicos. Se propone registrar el dispositivo, la versión, el resultado esperado y el resultado observado para cada recorrido.
 
+La [matriz de aceptación](matriz-de-aceptacion.md) asigna un identificador a cada caso y ofrece la ficha de ejecución. La [guía por rol](manual-del-piloto.md) reúne los pasos de uso y el [protocolo de evaluación](protocolo-de-evaluacion.md) prepara el registro de tareas, indicadores e incidencias.
+
 1. **Acceso**. Entrar con cuentas institucionales de estudiante, docente y administración. Confirmar que la sesión se recupera al recargar y que cada rol accede a sus funciones.
 2. **Instalación**. Instalar la web desde Safari y abrir Android con el entorno HTTPS. Cerrar la app, volver a abrir y revisar que se recupera la sesión.
 3. **Taller**. Publicar, seleccionar tallerista, inscribir, registrar una asistencia por QR entre dos dispositivos y otra por código manual. Subir evidencia y acreditar una sola recompensa. Abrir «Ver inscritos» como docente y confirmar que la lista refleja la asistencia y la aprobación.
