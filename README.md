@@ -166,13 +166,19 @@ El asistente usa guías de Wallnut y adapta las acciones a la cuenta. La convers
 2. Como docente o tallerista asignado, entra en **Agenda → Reprogramar**. Cambia el horario o lugar e indica el motivo. Como estudiante, abre **Mis talleres** y verifica el nuevo horario y tu inscripción.
 3. Como docente asignado o Administración, elige **Cancelar taller** e indica el motivo. La ficha se conserva en **Cancelados** y la inscripción permanece en el historial. La cancelación cierra los cupos, el QR y las evidencias de ese taller.
 
+### Consultar el historial completo de la billetera
+
+Como estudiante, abre **Billetera → Movimientos**. El resumen muestra los ingresos, gastos y Points reservados de toda tu cuenta. Usa **Points** o **Coins** para filtrar la lista y **Ver movimientos anteriores** para continuar con el historial. Un canje de Coins a Points aparece en ambos filtros. Abre **Referencia** para identificar una operación y **Actualizar movimientos** para consultar las más recientes.
+
+Un canje académico pendiente reserva los Points. Si el docente lo aprueba aparece como gasto; si lo rechaza, se libera la reserva y puedes consultar el motivo en **Canjes académicos**. El historial es privado para la propia cuenta estudiantil.
+
 ## Probar el APK de demostración
 
 Inicia primero la API y la web local como se explica arriba. Con un emulador Android abierto o un teléfono de desarrollo conectado por USB:
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito19-demo.apk
+adb install -r Wallnut-Android-hito20-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

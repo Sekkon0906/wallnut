@@ -1,6 +1,6 @@
 # Verificación del plan de Wallnut
 
-**Corte · versión 0.19.0**
+**Corte · versión 0.20.0**
 
 Los recorridos de esta nota sirven para comprobar los criterios del [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md). La [web de Railway](https://wallnut-production.up.railway.app) tiene el esquema listo y mantiene cerrado el acceso mientras se configura Google.
 
@@ -11,7 +11,7 @@ Los recorridos de esta nota sirven para comprobar los criterios del [plan de arq
 | Identidad y roles | Sesiones y funciones por rol con identidad simulada en las pruebas. Railway mantiene el acceso cerrado durante la preparación de Google. | Registrar el origen HTTPS en el cliente OAuth y probar cuentas institucionales de los tres roles. |
 | Comunidad y perfiles | Feed cronológico de publicaciones, eventos y convocatorias con filtro por procedencia, paginación y acceso a cada recurso. Fotos y perfiles conservan su visibilidad. | Definir responsables y tiempos de moderación. Probar el recorrido con cuentas institucionales. |
 | Talleres y evidencias | Convocatoria, agenda, inscripción, asistencia, entrega, revisión y recompensa. Reprogramación y cancelación con historial. Lista de inscritos y control de asistencia para el docente asignado. | Probar el QR y el código manual entre dos equipos y verificar que los inscritos encuentran los avisos de agenda. |
-| Billetera y canje académico | Saldos, pagos recuperables, historial de cupos con conciliación de asignaciones y acreditaciones, y canje con nota simulada. | Acordar con el tutor la elegibilidad y la procedencia de los Coins usados para canjear Points. |
+| Billetera y canje académico | Historial completo con filtros de Points y Coins, reservas y comprobación de saldos. Pagos recuperables, historial de cupos docentes y canje con nota simulada. | Acordar con el tutor la elegibilidad y la procedencia de los Coins usados para canjear Points. |
 | Ardy y ranking | Editor con vistas 2D y 3D, armario, tienda, nueces y ranking voluntario. | Probar interacción y rendimiento en iPhone y Android físicos. |
 | Eventos y torneos | Modalidad individual y por parejas, inscripciones, cuadro, pase directo, marcadores y campeón. | Validar un torneo real con organizador y estudiantes. Confirmar la disponibilidad del espacio por el canal institucional. |
 | Ayuda de Ardi | Temas frecuentes y preguntas en español con accesos según el rol. | Revisar las preguntas sin respuesta durante el piloto y ajustar las guías. |
@@ -32,6 +32,14 @@ La tarjeta muestra hasta diez solicitudes recientes de la cuenta, con prioridad 
 Si la confirmación se interrumpe, la tarjeta ofrece «Consultar resultado» antes de permitir otro intento. Esa consulta recupera el estado sin ejecutar un pago. Las solicitudes muestran su vencimiento al llegar la hora, y un intento con resultado incierto conserva la opción de consultar incluso después de esa hora. Los pagos completados se pueden volver a consultar y los reintentos tienen un único descuento.
 
 La restauración de sesión conserva el intento de recuperación cuando falla la conexión. Las respuestas tardías de una sesión anterior se descartan al cambiar de cuenta. Si el navegador restringe el almacenamiento, la sesión funciona en memoria durante el uso de la página.
+
+## Historial completo de la billetera
+
+La billetera permite consultar todos los movimientos registrados con páginas de veinte, filtrar los que afectan a Points o Coins y abrir la referencia de cada operación. Los canjes de Coins a Points aparecen en ambos filtros porque afectan a ambas unidades. El resumen muestra los ingresos y gastos acumulados de la cuenta completa y separa los Points reservados para solicitudes académicas pendientes.
+
+Al aprobar un canje académico, el gasto sustituye a la reserva. Al rechazarlo, la reserva se libera y la solicitud conserva su motivo en Canjes académicos. Un canje rechazado no se presenta como gasto. El resumen, los saldos y cada página comparten una consulta consistente. Una operación nueva aparece al actualizar. La comprobación compara los movimientos con el saldo calculado y las reservas, y mantiene intactos los registros.
+
+El historial es privado y está disponible para la propia cuenta estudiantil. Las referencias permiten localizar una operación sin exponer fotografías, reflexiones, correos o notas. La migración 019 agrega índices de consulta para pagos completados, compras y canjes aprobados.
 
 ## Historial del cupo docente
 
@@ -70,7 +78,7 @@ Una ronda de aceptación requiere un entorno HTTPS, una cuenta de cada rol y al 
 1. **Acceso**. Entrar con cuentas institucionales de estudiante, docente y administración. Confirmar que la sesión se recupera al recargar y que cada rol accede a sus funciones.
 2. **Instalación**. Instalar la web desde Safari y abrir Android con el entorno HTTPS. Cerrar la app, volver a abrir y revisar que se recupera la sesión.
 3. **Taller**. Publicar, seleccionar tallerista, inscribir, registrar una asistencia por QR entre dos dispositivos y otra por código manual. Subir evidencia y acreditar una sola recompensa. Abrir «Ver inscritos» como docente y confirmar que la lista refleja la asistencia y la aprobación.
-4. **Economía**. Abrir «Ver movimientos» del cupo como Administración y como docente. Verificar una asignación, una recompensa y una conversión. Crear un cobro, recargar y recuperar su QR desde «Solicitudes recientes». Pagar Coins por QR o código, consultar el comprobante y repetir la solicitud para verificar un único descuento. Solicitar un canje de nota simulada y comprobar saldo, reserva, aprobación o devolución con motivo.
+4. **Economía**. Abrir «Ver movimientos» del cupo como Administración y como docente. Verificar una asignación, una recompensa y una conversión. Crear un cobro, recargar y recuperar su QR desde «Solicitudes recientes». Pagar Coins por QR o código, consultar el comprobante y repetir la solicitud para verificar un único descuento. En Billetera, probar los filtros y cargar movimientos anteriores. Solicitar un canje de nota simulada y comprobar saldo, reserva, aprobación o devolución con motivo.
 5. **Comunidad**. Crear contenido de cada tipo, confirmar su orden en «Todo», filtrar por procedencia y abrir cada tarjeta. Cargar otra página después de una nueva publicación. Reportar y moderar una foto y verificar que se retira del feed de otro estudiante. Inscribir y confirmar dos parejas, publicar el cuadro y registrar el resultado.
 6. **Ardy**. Cambiar de 2D a 3D, girar con un dedo y con los botones, probar una prenda del armario y guardar la apariencia. Volver a 2D y comprobar que conserva la apariencia guardada.
 7. **Evaluación**. Comparar el recorrido de un taller de prueba con los totales para sus fechas. Exportar el CSV desde Administración y comprobar que las cuentas de estudiante y docente carecen de acceso al informe.

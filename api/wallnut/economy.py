@@ -21,6 +21,27 @@ MOVEMENTS = """
     JOIN workshops w ON w.id = m.workshop_id JOIN workshop_calls c ON c.id = w.call_id
     JOIN course_sections s ON s.id = c.course_id
 """
+WALLET_ENTRIES = MOVEMENTS + """
+    WHERE m.student_id = %(student)s
+    UNION ALL
+    SELECT r.id, 'grade_redemption', -r.points, 0, s.title, NULL, r.reviewed_at
+    FROM grade_redemptions r JOIN course_sections s ON s.id = r.course_id
+    WHERE r.student_id = %(student)s AND r.status = 'approved'
+    UNION ALL
+    SELECT shop.id, 'ardy_purchase', 0, -shop.price, shop.item_name, NULL, shop.created_at
+    FROM ardy_item_purchases shop WHERE shop.student_id = %(student)s
+    UNION ALL
+    SELECT n.id, 'ardy_nut', 0, -n.price, 'Nuez de Ardy', NULL, n.created_at
+    FROM ardy_nuts n WHERE n.student_id = %(student)s
+    UNION ALL
+    SELECT p.id, 'coin_sent', 0, -p.amount, recipient.display_name, NULL, p.paid_at
+    FROM coin_payment_requests p JOIN accounts recipient ON recipient.id = p.recipient_id
+    WHERE p.payer_id = %(student)s AND p.paid_at IS NOT NULL
+    UNION ALL
+    SELECT p.id, 'coin_received', 0, p.amount, payer.display_name, NULL, p.paid_at
+    FROM coin_payment_requests p JOIN accounts payer ON payer.id = p.payer_id
+    WHERE p.recipient_id = %(student)s AND p.paid_at IS NOT NULL
+"""
 
 
 class AllocationInput(BaseModel):
@@ -321,27 +342,8 @@ def read_wallet(account: CurrentAccount, db: Database, response: Response):
         db.execute("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY")
         totals = wallet_totals(db, account.id)
         movements = db.execute(
-            MOVEMENTS + """
-            WHERE m.student_id = %(student)s
-            UNION ALL
-            SELECT r.id, 'grade_redemption', -r.points, 0, s.title, NULL, r.reviewed_at
-            FROM grade_redemptions r JOIN course_sections s ON s.id = r.course_id
-            WHERE r.student_id = %(student)s AND r.status = 'approved'
-            UNION ALL
-            SELECT shop.id, 'ardy_purchase', 0, -shop.price, shop.item_name, NULL, shop.created_at
-            FROM ardy_item_purchases shop WHERE shop.student_id = %(student)s
-            UNION ALL
-            SELECT n.id, 'ardy_nut', 0, -n.price, 'Nuez de Ardy', NULL, n.created_at
-            FROM ardy_nuts n WHERE n.student_id = %(student)s
-            UNION ALL
-            SELECT p.id, 'coin_sent', 0, -p.amount, recipient.display_name, NULL, p.paid_at
-            FROM coin_payment_requests p JOIN accounts recipient ON recipient.id = p.recipient_id
-            WHERE p.payer_id = %(student)s AND p.paid_at IS NOT NULL
-            UNION ALL
-            SELECT p.id, 'coin_received', 0, p.amount, payer.display_name, NULL, p.paid_at
-            FROM coin_payment_requests p JOIN accounts payer ON payer.id = p.payer_id
-            WHERE p.recipient_id = %(student)s AND p.paid_at IS NOT NULL
-            ORDER BY created_at DESC, id DESC LIMIT 50
+            "SELECT * FROM (" + WALLET_ENTRIES + """) entries
+            ORDER BY created_at DESC, id DESC, kind DESC LIMIT 50
             """,
             {"student": account.id},
         ).fetchall()

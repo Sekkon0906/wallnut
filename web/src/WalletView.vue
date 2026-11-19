@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { ArrowRight, History, Target } from '@lucide/vue'
+import { ArrowRight, Target } from '@lucide/vue'
 import { api, errorText, RequestError, type Wallet, type WalletConversion } from './client'
 import CoinCard from './CoinCard.vue'
+import WalletHistory from './WalletHistory.vue'
 
 const props = defineProps<{ token: string; accountId: string; name: string }>()
 const emit = defineEmits<{ expired: []; academic: []; shop: [] }>()
@@ -11,20 +12,10 @@ const loading = ref(false)
 const converting = ref('')
 const problem = ref('')
 const notice = ref('')
+const historyRevision = ref(0)
 let active = true
 let loadRevision = 0
 const numbers = new Intl.NumberFormat('es-CO')
-const dates = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeZone: 'America/Bogota' })
-const labels = {
-  evidence_reward: 'Evidencia aprobada',
-  goal_coins: 'Meta verificada',
-  coin_conversion: 'Canje de Coins a Points',
-  grade_redemption: 'Canje académico',
-  ardy_purchase: 'Compra para tu Ardy',
-  ardy_nut: 'Compra de una nuez',
-  coin_sent: 'Pago de Ardi Coins',
-  coin_received: 'Coins recibidos',
-}
 
 function handleError(error: unknown) {
   if (!active) return
@@ -38,7 +29,10 @@ async function load() {
   problem.value = ''
   try {
     const value = await api<Wallet>('/wallet', { token: props.token })
-    if (active && revision === loadRevision) wallet.value = value
+    if (active && revision === loadRevision) {
+      wallet.value = value
+      historyRevision.value++
+    }
   } catch (error) {
     if (revision === loadRevision) handleError(error)
   } finally {
@@ -67,8 +61,8 @@ async function convert(goal: WalletConversion) {
   }
 }
 
-function amount(value: number) {
-  return `${value > 0 ? '+' : ''}${numbers.format(value)}`
+function updateBalances(balances: Pick<Wallet, 'points' | 'coins' | 'reserved_points'>) {
+  if (wallet.value) wallet.value = { ...wallet.value, ...balances }
 }
 </script>
 
@@ -122,23 +116,7 @@ function amount(value: number) {
         </article>
       </section>
 
-      <section class="wallet-section" aria-labelledby="wallet-movements">
-        <h2 id="wallet-movements"><History :size="22" aria-hidden="true" /> Movimientos</h2>
-        <p v-if="!wallet.movements.length" class="tile state-note">Aún no tienes movimientos.</p>
-        <ol v-else class="tile wallet-history">
-          <li v-for="movement in wallet.movements" :key="movement.id">
-            <div>
-              <h3>{{ labels[movement.kind] }}</h3>
-              <p>{{ movement.course }}<template v-if="movement.workshop"> · {{ movement.workshop }}</template></p>
-              <time :datetime="movement.created_at">{{ dates.format(new Date(movement.created_at)) }}</time>
-            </div>
-            <ul class="wallet-deltas">
-              <li v-if="movement.points" :class="{ 'delta-positive': movement.points > 0 }">{{ amount(movement.points) }} Points</li>
-              <li v-if="movement.coins" :class="{ 'delta-positive': movement.coins > 0 }">{{ amount(movement.coins) }} Coins</li>
-            </ul>
-          </li>
-        </ol>
-      </section>
+      <WalletHistory :token="token" :revision="historyRevision" @expired="emit('expired')" @updated="updateBalances" />
     </template>
   </section>
 </template>
