@@ -13,7 +13,6 @@ PAYMENT = """
     SELECT p.id, p.recipient_id, p.payer_id, a.display_name AS recipient, p.amount,
            p.expires_at, p.paid_at, p.expires_at <= clock_timestamp() AS expired
     FROM coin_payment_requests p JOIN accounts a ON a.id = p.recipient_id
-    WHERE p.id = %s
 """
 
 
@@ -23,7 +22,9 @@ class Charge(BaseModel):
 
 
 def find_payment(db, payment_id, *, lock=False):
-    payment = db.execute(PAYMENT + (" FOR UPDATE OF p" if lock else ""), (payment_id,)).fetchone()
+    payment = db.execute(
+        PAYMENT + " WHERE p.id = %s" + (" FOR UPDATE OF p" if lock else ""), (payment_id,),
+    ).fetchone()
     if not payment:
         raise HTTPException(404, "No encontramos la solicitud de Coins.")
     return payment
@@ -36,9 +37,27 @@ def payment_view(payment, account_id, response):
         "recipient": payment["recipient"],
         "amount": payment["amount"],
         "expires_at": payment["expires_at"],
+        "paid_at": payment["paid_at"],
         "status": "paid" if payment["paid_at"] else "expired" if payment["expired"] else "pending",
         "can_pay": not payment["paid_at"] and not payment["expired"] and payment["recipient_id"] != account_id,
+        "is_recipient": payment["recipient_id"] == account_id,
+        "paid_by_me": payment["paid_at"] is not None and payment["payer_id"] == account_id,
     }
+
+
+@router.get("")
+def recent_payments(account: CurrentAccount, db: Database, response: Response):
+    require_student(account)
+    response.headers["Cache-Control"] = "private, no-store"
+    payments = db.execute(
+        PAYMENT + """
+        WHERE p.recipient_id = %(account)s OR p.payer_id = %(account)s
+        ORDER BY (p.paid_at IS NULL AND p.expires_at > statement_timestamp()) DESC,
+                 coalesce(p.paid_at, p.expires_at) DESC, p.id DESC
+        LIMIT 10
+        """, {"account": account.id},
+    ).fetchall()
+    return [payment_view(payment, account.id, response) for payment in payments]
 
 
 @router.post("")
@@ -81,7 +100,7 @@ def pay(payment_id: UUID, account: CurrentAccount, db: Database, response: Respo
             """
             UPDATE coin_payment_requests SET payer_id = %s, paid_at = stamp.at
             FROM (SELECT clock_timestamp() AS at) stamp
-            WHERE id = %s AND stamp.at < expires_at RETURNING paid_at
+            WHERE id = %s AND stamp.at < expires_at RETURNING paid_at, payer_id
             """,
             (account.id, payment_id),
         ).fetchone()

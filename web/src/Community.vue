@@ -17,7 +17,7 @@ import ArdiHelp from './ArdiHelp.vue'
 import { api, errorText, localDemo, RequestError, type Account, type Application, type Course, type WorkshopCall } from './client'
 
 const props = defineProps<{ account: Account; token: string }>()
-const emit = defineEmits<{ expired: [] }>()
+const emit = defineEmits<{ expired: [token: string] }>()
 type Filter = 'all' | 'open' | 'mine'
 type Dialog = 'create' | 'apply' | 'review' | 'schedule'
 const filters: { id: Filter; label: string }[] = [
@@ -100,7 +100,7 @@ function openGradeRedemption(course: Course) {
 }
 
 function handleError(error: unknown, target: typeof problem) {
-  if (error instanceof RequestError && error.status === 401) emit('expired')
+  if (error instanceof RequestError && error.status === 401) emit('expired', props.token)
   else target.value = errorText(error)
 }
 
@@ -301,7 +301,7 @@ async function confirmEnrollment() {
       </button>
     </div>
     <ArdiHelp v-if="helpOpen" :token="token" @close="helpOpen = false"
-      @navigate="navigateFromHelp" @expired="emit('expired')" />
+      @navigate="navigateFromHelp" @expired="emit('expired', token)" />
     <p v-if="notice" class="success" role="status">{{ notice }}</p>
     <p v-if="problem" class="error" role="alert">{{ problem }}</p>
 
@@ -325,13 +325,13 @@ async function confirmEnrollment() {
           :aria-pressed="entry.id === section" @click="selectSection(entry.id)">{{ entry.label }}</button>
       </div>
       <button v-if="focusedEntry" class="button quiet" type="button" @click="selectSection('all')">Volver al feed</button>
-      <CommunityFeed v-if="section === 'all'" :token="token" @open="openFeedEntry" @expired="emit('expired')" />
+      <CommunityFeed v-if="section === 'all'" :token="token" @open="openFeedEntry" @expired="emit('expired', token)" />
       <CampusEvents v-if="section === 'events'" :key="focusedEntry?.id ?? 'events'" :token="token" :role="account.role"
         :event-id="focusedEntry?.kind === 'event' ? focusedEntry.id : undefined"
-        @expired="emit('expired')" />
+        @expired="emit('expired', token)" />
       <CampusPosts v-if="section === 'posts'" :key="focusedEntry?.id ?? 'posts'" :token="token" :role="account.role"
         :post-id="focusedEntry?.kind === 'post' ? focusedEntry.id : undefined"
-        @expired="emit('expired')" />
+        @expired="emit('expired', token)" />
 
       <template v-if="section === 'calls'">
       <div class="section-heading">
@@ -378,23 +378,23 @@ async function confirmEnrollment() {
     </template>
 
     <WorkshopAgenda v-else-if="view === 'agenda'" :token="token" :is-student="isStudent"
-      @expired="emit('expired')" />
+      @expired="emit('expired', token)" />
     <WalletView v-else-if="view === 'wallet' && isStudent" :token="token" :account-id="account.id"
-      :name="account.display_name" @expired="emit('expired')" @academic="view = 'groups'" @shop="view = 'ardy'" />
+      :name="account.display_name" @expired="emit('expired', token)" @academic="view = 'groups'" @shop="view = 'ardy'" />
     <GradeRedemptionView v-else-if="view === 'grade' && gradeCourse" :key="gradeCourse.id"
       :course="gradeCourse" :token="token" :account-id="account.id" :faculty="isFaculty"
-      @back="view = 'groups'" @expired="emit('expired')" />
+      @back="view = 'groups'" @expired="emit('expired', token)" />
     <ParticipationRanking v-else-if="view === 'ranking'" :token="token" :is-student="isStudent"
-      @edit="view = 'ardy'" @expired="emit('expired')" />
+      @edit="view = 'ardy'" @expired="emit('expired', token)" />
     <MyArdyView v-else-if="view === 'ardy' && isStudent" :token="token" :display-name="account.display_name"
-      @expired="emit('expired')" />
-    <PilotMetricsView v-else-if="view === 'metrics' && isAdmin" :token="token" @expired="emit('expired')" />
+      @expired="emit('expired', token)" />
+    <PilotMetricsView v-else-if="view === 'metrics' && isAdmin" :token="token" @expired="emit('expired', token)" />
     <Administration v-else-if="isAdmin" :token="token" :account-id="account.id" :courses="courses"
-      @changed="loadCourses" @expired="emit('expired')" />
+      @changed="loadCourses" @expired="emit('expired', token)" />
     <section v-else class="groups">
       <h1>Mis grupos</h1>
       <FacultyBudgetView v-if="isFaculty" :token="token" :account-id="account.id"
-        @expired="emit('expired')" />
+        @expired="emit('expired', token)" />
       <p v-if="!courses.length" class="tile state-note">Aún no tienes grupos asignados.</p>
       <article v-for="course in courses" :key="course.id" class="tile group">
         <CalendarDays :size="24" aria-hidden="true" />

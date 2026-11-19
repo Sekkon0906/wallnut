@@ -111,6 +111,8 @@ Para probar tus propias reglas, usa **Guardar regla** y **Guardar nota** en la v
 
 ### Probar la tarjeta, la tienda y los eventos
 
+En Billetera, **Solicitudes recientes** permite retomar un cobro después de recargar y consultar sus pagos. Genera un cobro como Mateo, recarga y abre **Ver solicitud** para recuperar el mismo QR. Usa su código para pagar como María. Ambas cuentas pueden consultar el resultado y la fecha del pago. Ante una confirmación interrumpida, **Consultar resultado** recupera el estado desde el servidor.
+
 1. Consigue Ardi Coins como María siguiendo los primeros tres pasos del recorrido de la billetera. En otra pestaña entra como **Mateo · estudiante de prueba**.
 2. Como Mateo, abre **Billetera → Recibir Coins**. Elige la cantidad y genera el QR. Cada solicitud vence en cinco minutos y admite un solo pago.
 3. Como María, abre **Billetera → Pagar con QR**. Escanea el QR que muestra el otro dispositivo o pega el código manual. Revisa el nombre y la cantidad antes de pulsar **Confirmar pago**. Como Mateo, elige **Consultar estado** para actualizar el saldo.
@@ -168,7 +170,7 @@ Inicia primero la API y la web local como se explica arriba. Con un emulador And
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito17-demo.apk
+adb install -r Wallnut-Android-hito18-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

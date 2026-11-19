@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { ArrowRight, History, Target } from '@lucide/vue'
 import { api, errorText, RequestError, type Wallet, type WalletConversion } from './client'
 import CoinCard from './CoinCard.vue'
@@ -11,6 +11,8 @@ const loading = ref(false)
 const converting = ref('')
 const problem = ref('')
 const notice = ref('')
+let active = true
+let loadRevision = 0
 const numbers = new Intl.NumberFormat('es-CO')
 const dates = new Intl.DateTimeFormat('es-CO', { dateStyle: 'medium', timeZone: 'America/Bogota' })
 const labels = {
@@ -25,23 +27,26 @@ const labels = {
 }
 
 function handleError(error: unknown) {
+  if (!active) return
   if (error instanceof RequestError && error.status === 401) emit('expired')
   else problem.value = errorText(error)
 }
 
 async function load() {
-  if (loading.value) return
+  const revision = ++loadRevision
   loading.value = true
   problem.value = ''
   try {
-    wallet.value = await api<Wallet>('/wallet', { token: props.token })
+    const value = await api<Wallet>('/wallet', { token: props.token })
+    if (active && revision === loadRevision) wallet.value = value
   } catch (error) {
-    handleError(error)
+    if (revision === loadRevision) handleError(error)
   } finally {
-    loading.value = false
+    if (active && revision === loadRevision) loading.value = false
   }
 }
 onMounted(load)
+onBeforeUnmount(() => { active = false })
 
 async function convert(goal: WalletConversion) {
   if (converting.value || goal.converted) return
@@ -52,6 +57,7 @@ async function convert(goal: WalletConversion) {
     await api(`/workshops/${goal.workshop_id}/evidence/${goal.evidence_id}/convert`, {
       token: props.token, method: 'POST',
     })
+    if (!active) return
     notice.value = 'Canje registrado.'
     await load()
   } catch (error) {

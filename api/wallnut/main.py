@@ -15,7 +15,7 @@ from .database import connect, migration_files, pending_migrations
 
 
 def create_app(verify_identity=None):
-    api = FastAPI(title="Wallnut", version="0.17.0")
+    api = FastAPI(title="Wallnut", version="0.18.0")
     api.state.verify_identity = verify_identity if verify_identity is not None else identity.configured_verifier()
     allowed_origins = [
         origin.strip() for origin in os.environ.get("WEB_ORIGINS", "").split(",")

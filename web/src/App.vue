@@ -13,55 +13,68 @@ const busy = ref(false)
 const message = ref('')
 const native = Capacitor.isNativePlatform()
 const sessionKey = 'wallnut.session'
-const saved = ref(sessionStorage.getItem(sessionKey) ?? '')
+const saved = ref('')
+try { saved.value = sessionStorage.getItem(sessionKey) ?? '' } catch { /* La sesión puede mantenerse en memoria. */ }
 const restoring = ref(Boolean(saved.value))
 const roleNames = { student: 'Estudiante', faculty: 'Docente', admin: 'Administración', staff: 'Personal' }
+let sessionRevision = 0
 
 function setSession(value: string, user: Account) {
   token.value = value
   account.value = user
   saved.value = value
-  sessionStorage.setItem(sessionKey, value)
+  try { sessionStorage.setItem(sessionKey, value) } catch { /* La sesión puede mantenerse en memoria. */ }
 }
 
 async function restore() {
   if (!saved.value) return
+  const revision = ++sessionRevision
+  const credential = saved.value
   restoring.value = true
   message.value = ''
   try {
-    const user = await api<Account>('/session', { token: saved.value })
-    setSession(saved.value, user)
+    const user = await api<Account>('/session', { token: credential })
+    if (revision === sessionRevision) setSession(credential, user)
   } catch (error) {
+    if (revision !== sessionRevision) return
     if (error instanceof RequestError && error.status === 401) clearSession('La sesión terminó. Vuelve a ingresar.')
     else message.value = errorText(error)
   } finally {
-    restoring.value = false
+    if (revision === sessionRevision) restoring.value = false
   }
 }
 onMounted(restore)
 
 async function signIn(credential: string) {
   if (busy.value) return
+  const revision = ++sessionRevision
   busy.value = true
   message.value = ''
   try {
     const session = await api<{ token: string; account: Account }>('/session', {
       method: 'POST', data: { credential },
     })
-    setSession(session.token, session.account)
+    if (revision === sessionRevision) setSession(session.token, session.account)
   } catch (error) {
-    message.value = errorText(error)
+    if (revision === sessionRevision) message.value = errorText(error)
   } finally {
-    busy.value = false
+    if (revision === sessionRevision) busy.value = false
   }
 }
 
 function clearSession(notice = '') {
+  sessionRevision++
+  busy.value = false
+  restoring.value = false
   token.value = ''
   account.value = null
   saved.value = ''
-  sessionStorage.removeItem(sessionKey)
+  try { sessionStorage.removeItem(sessionKey) } catch { /* La sesión en memoria ya se cerró. */ }
   message.value = notice
+}
+
+function sessionExpired(expiredToken: string) {
+  if (expiredToken === token.value) clearSession('La sesión terminó. Vuelve a ingresar.')
 }
 
 async function signOut() {
@@ -86,8 +99,7 @@ async function signOut() {
       </div>
     </div>
   </header>
-  <Community v-if="account" :account="account" :token="token"
-    @expired="clearSession('La sesión terminó. Vuelve a ingresar.')" />
+  <Community v-if="account" :key="token" :account="account" :token="token" @expired="sessionExpired" />
   <main v-else-if="busy || saved" class="launch-screen">
     <section class="tile launch-panel">
       <img src="/ardy.webp" alt="" width="150" height="150" />
