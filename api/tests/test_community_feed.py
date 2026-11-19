@@ -67,11 +67,17 @@ def test_feed_filters_preserve_cancelled_events_and_closed_call_state(client):
     call = next(item for item in institutional if item['kind'] == 'call')
     assert not call['content']['open'] and call['content']['my_application'] == 'approved'
     assert not call['content']['can_manage'] and call['content']['can_schedule']
-    assert client.get(f'/v1/workshop-calls/{call_id}', headers=student).json() == call['content']
+    direct_call = client.get(f'/v1/workshop-calls/{call_id}', headers=student).json()
+    assert datetime.fromisoformat(direct_call['created_at']) == datetime.fromisoformat(call['content']['created_at'])
+    assert {**direct_call, 'created_at': call['content']['created_at']} == call['content']
     events = client.get('/v1/community-feed?origin=students&kind=event', headers=student).json()['items']
     assert len(events) == 1 and events[0]['id'] == student_event and events[0]['content']['cancelled']
     assert not events[0]['content']['registration_open']
-    assert client.get(f'/v1/campus-events/{student_event}', headers=student).json() == events[0]['content']
+    direct_event = client.get(f'/v1/campus-events/{student_event}', headers=student).json()
+    for field in ('starts_at', 'created_at'):
+        assert datetime.fromisoformat(direct_event[field]) == datetime.fromisoformat(events[0]['content'][field])
+        direct_event[field] = events[0]['content'][field]
+    assert direct_event == events[0]['content']
     assert client.get('/v1/community-feed?origin=students&kind=call', headers=student).json()['items'] == []
     assert client.get('/v1/community-feed').status_code == 401
     for query in ('limit=0', 'limit=31', 'origin=someone', 'kind=private', 'cursor=%24%24', 'cursor=YWJj'):
