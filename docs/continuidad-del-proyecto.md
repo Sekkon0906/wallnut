@@ -4,7 +4,7 @@
 
 ## Referencias compartidas
 
-- La rama `main` de [Wallnut](https://github.com/Sekkon0906/wallnut) contiene el producto activo. La versión [0.20.0](https://github.com/Sekkon0906/wallnut/releases/tag/v0.20.0) agrega el historial completo de la billetera con filtros, referencias, ingresos, gastos, reservas y comprobación del saldo. La revisión desplegada se consulta en Railway. El primer prototipo está en [archivo/prototipo-flutter](https://github.com/Sekkon0906/wallnut/tree/archivo/prototipo-flutter).
+- La rama `main` de [Wallnut](https://github.com/Sekkon0906/wallnut) contiene el producto activo. La versión [0.21.0](https://github.com/Sekkon0906/wallnut/releases/tag/v0.21.0) incorpora avisos privados de agenda, evidencias y canjes con acceso al recurso, contador y marcas de lectura. La revisión desplegada se consulta en Railway. El primer prototipo está en [archivo/prototipo-flutter](https://github.com/Sekkon0906/wallnut/tree/archivo/prototipo-flutter).
 - El [plan actualizado](plan-de-desarrollo-y-arquitectura.md) concentra el alcance, los pendientes y las condiciones de cierre. El [registro de verificación](verificacion-del-plan.md) contiene los recorridos y el [manual de despliegue](despliegue-del-piloto.md) explica Railway y la conexión con PostgreSQL.
 - La [bitácora de Obsidian](https://github.com/Sekkon0906/boveda-obsidian/tree/main/Proyectos/Wallnut) reúne las decisiones, las entregas y las copias del plan y la guía. Los detalles de implementación y cambios de código se versionan en el repositorio de Wallnut.
 

@@ -1,3 +1,4 @@
+from datetime import timezone
 from io import BytesIO
 from typing import Annotated, Literal
 from uuid import UUID
@@ -9,6 +10,7 @@ from pydantic import AwareDatetime, BaseModel, StringConstraints
 from .database import Database
 from .economy import credit_approved_evidence
 from .identity import CurrentAccount
+from .notifications import record_notification
 from .workshops import is_assigned_faculty, is_facilitator, require_active_workshop
 
 router = APIRouter(prefix="/workshops/{workshop_id}/evidence", tags=["Evidencias"])
@@ -169,6 +171,9 @@ def submit_evidence(workshop_id: UUID, account: CurrentAccount, db: Database, re
         if not submitted:
             raise HTTPException(409, "Tu evidencia ya está en revisión o aprobada.")
         result = get_evidence(db, submitted["id"])
+        version = result["submitted_at"].astimezone(timezone.utc).isoformat()
+        record_notification(db, workshop["faculty_id"], f"evidence:{result['id']}:{version}:submitted",
+                            "evidence_submitted", workshop_id=workshop_id)
     response.headers.update(PRIVATE_CACHE)
     return result
 
@@ -228,6 +233,9 @@ def review_evidence(workshop_id: UUID, evidence_id: UUID, body: EvidenceReview,
             if body.decision == "approved":
                 db.execute("SELECT id FROM workshops WHERE id = %s FOR SHARE", (workshop_id,))
                 credit_approved_evidence(db, workshop, evidence)
+            version = evidence["submitted_at"].astimezone(timezone.utc).isoformat()
+            record_notification(db, evidence["student_id"], f"evidence:{evidence_id}:{version}:reviewed",
+                                f"evidence_{body.decision}", workshop_id=workshop_id)
         elif (evidence["status"], evidence["comment"]) != (body.decision, comment):
             raise HTTPException(409, "Esta versión de la evidencia ya fue revisada.")
         result = get_evidence(db, evidence_id)

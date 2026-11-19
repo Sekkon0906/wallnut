@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from .database import Database
 from .identity import CurrentAccount
+from .notifications import notify_agenda_change
 from .workshops import (
     WorkshopSchedule, database_time, is_assigned_faculty, is_facilitator,
     load_workshop, require_active_workshop,
@@ -110,3 +111,4 @@ def change_agenda(workshop_id: UUID, change: Annotated[Reschedule | Cancellation
                 """,
                 (now, workshop_id),
             )
+        notify_agenda_change(db, workshop, account.id, change.kind)

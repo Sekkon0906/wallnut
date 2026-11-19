@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field, StringConstraints, model_validator
 from .database import Database
 from .economy import PositiveAmount, lock_student_wallet
 from .identity import CurrentAccount
+from .notifications import record_notification
 
 router = APIRouter(tags=["Nota simulada"])
 MAX_GRADE = 5000
@@ -322,6 +323,11 @@ def request_redemption(course_id: UUID, body: RedemptionInput, account: CurrentA
                 "INSERT INTO grade_redemption_debits (redemption_id, movement_id, points) VALUES (%s, %s, %s)",
                 debits,
             )
+        faculty_id = db.execute(
+            "SELECT faculty_id FROM course_sections WHERE id = %s", (course_id,),
+        ).fetchone()["faculty_id"]
+        record_notification(db, faculty_id, f"redemption:{created['id']}:requested",
+                            "redemption_requested", course_id=course_id)
         return request_detail(db, created["id"])
 
 
@@ -353,4 +359,6 @@ def review_redemption(course_id: UUID, redemption_id: UUID, body: RedemptionRevi
             """,
             (body.decision, reason, account.id, redemption_id),
         )
+        record_notification(db, target["student_id"], f"redemption:{redemption_id}:reviewed",
+                            f"redemption_{body.decision}", course_id=course_id)
         return request_detail(db, redemption_id)

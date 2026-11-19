@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, reactive, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { ArrowUpRight, BookOpen, CalendarDays, ChartColumn, ChevronRight, GraduationCap, Megaphone, MessageCircle, Plus, Trophy, UserRound, Wallet as WalletIcon, X } from '@lucide/vue'
 import Administration from './Administration.vue'
 import FacultyBudgetView from './FacultyBudgetView.vue'
@@ -14,6 +14,7 @@ import CampusPosts from './CampusPosts.vue'
 import CommunityFeed from './CommunityFeed.vue'
 import type { FeedTarget } from './communityFeed'
 import ArdiHelp from './ArdiHelp.vue'
+import NotificationCenter from './NotificationCenter.vue'
 import { api, errorText, localDemo, RequestError, type Account, type Application, type Course, type WorkshopCall } from './client'
 
 const props = defineProps<{ account: Account; token: string }>()
@@ -42,6 +43,9 @@ const view = ref<'community' | 'groups' | 'agenda' | 'wallet' | 'grade' | 'ardy'
   props.account.role === 'admin' ? 'groups' : 'community',
 )
 const gradeCourse = ref<Course>()
+const focusedWorkshop = ref<string>()
+let active = true
+onBeforeUnmount(() => { active = false })
 const modal = ref<HTMLDialogElement>()
 const dialog = ref<Dialog | null>(null)
 const selected = ref<WorkshopCall>()
@@ -84,6 +88,7 @@ const roleHome = {
 
 function navigateFromHelp(destination: 'community' | 'events' | 'posts' | 'calls' | 'agenda' | 'groups' | 'wallet' | 'ardy' | 'ranking') {
   helpOpen.value = false
+  focusedWorkshop.value = undefined
   focusedEntry.value = undefined
   if (destination === 'events' || destination === 'posts' || destination === 'calls') {
     selectSection(destination)
@@ -97,6 +102,18 @@ function navigateFromHelp(destination: 'community' | 'events' | 'posts' | 'calls
 function openGradeRedemption(course: Course) {
   gradeCourse.value = course
   view.value = 'grade'
+}
+
+function openWorkshopNotice(id: string) {
+  focusedWorkshop.value = id
+  view.value = 'agenda'
+}
+
+async function openCourseNotice(id: string) {
+  if (!await loadCourses() || !active) return
+  const course = courses.value.find(value => value.id === id)
+  if (course && (isStudent.value || isFaculty.value)) openGradeRedemption(course)
+  else problem.value = 'Este grupo ya no está disponible para tu cuenta.'
 }
 
 function handleError(error: unknown, target: typeof problem) {
@@ -146,9 +163,13 @@ function openFeedEntry(entry: FeedTarget) {
 
 async function loadCourses() {
   try {
-    courses.value = await api<Course[]>('/courses', { token: props.token })
+    const value = await api<Course[]>('/courses', { token: props.token })
+    if (!active) return false
+    courses.value = value
+    return true
   } catch (error) {
-    handleError(error, problem)
+    if (active) handleError(error, problem)
+    return false
   }
 }
 
@@ -296,6 +317,8 @@ async function confirmEnrollment() {
       </button>
     </nav>
     <div class="dashboard-help">
+      <NotificationCenter :token="token" @expired="emit('expired', token)"
+        @workshop="openWorkshopNotice" @course="openCourseNotice" />
       <button class="button secondary" type="button" aria-haspopup="dialog" @click="helpOpen = true">
         <MessageCircle :size="18" aria-hidden="true" /> Ayuda de Ardi
       </button>
@@ -377,7 +400,8 @@ async function confirmEnrollment() {
       </template>
     </template>
 
-    <WorkshopAgenda v-else-if="view === 'agenda'" :token="token" :is-student="isStudent"
+    <WorkshopAgenda v-else-if="view === 'agenda'" :key="focusedWorkshop ?? 'agenda'" :token="token" :is-student="isStudent"
+      :workshop-id="focusedWorkshop"
       @expired="emit('expired', token)" />
     <WalletView v-else-if="view === 'wallet' && isStudent" :token="token" :account-id="account.id"
       :name="account.display_name" @expired="emit('expired', token)" @academic="view = 'groups'" @shop="view = 'ardy'" />

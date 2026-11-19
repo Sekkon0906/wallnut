@@ -172,13 +172,22 @@ Como estudiante, abre **Billetera → Movimientos**. El resumen muestra los ingr
 
 Un canje académico pendiente reserva los Points. Si el docente lo aprueba aparece como gasto; si lo rechaza, se libera la reserva y puedes consultar el motivo en **Canjes académicos**. El historial es privado para la propia cuenta estudiantil.
 
+### Probar los avisos
+
+1. Agenda un taller futuro e inscribe a una cuenta estudiantil. Reprográmalo desde el docente o tallerista asignado. Abre **Avisos** desde la cuenta inscrita y comprueba el nuevo aviso.
+2. Pulsa **Ver taller**. La agenda enfoca ese taller y el aviso queda leído. **Solo sin leer** muestra lo que aún tienes pendiente.
+3. Entrega una evidencia y revísala desde el docente. Las entregas y correcciones generan avisos para su destinatario. Prueba también una solicitud de canje y su aprobación o rechazo.
+4. **Marcar todos como leídos** conserva los avisos que lleguen después de la consulta actual. **Ver avisos anteriores** continúa con el historial.
+
+El contador se consulta al entrar, al volver a la pestaña y cada minuto mientras la página está visible. **Actualizar avisos** permite consultarlos en el momento. Los avisos se conservan en la cuenta al cerrar sesión y se crean al realizar nuevos cambios de agenda, evidencias y canjes.
+
 ## Probar el APK de demostración
 
 Inicia primero la API y la web local como se explica arriba. Con un emulador Android abierto o un teléfono de desarrollo conectado por USB:
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito20-demo.apk
+adb install -r Wallnut-Android-hito21-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

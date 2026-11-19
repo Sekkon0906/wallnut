@@ -7,7 +7,7 @@ import WorkshopEvidence from './WorkshopEvidence.vue'
 import WorkshopParticipants from './WorkshopParticipants.vue'
 import { api, errorText, RequestError, type Attendance, type AttendanceCode, type Workshop } from './client'
 
-const props = defineProps<{ token: string; isStudent: boolean }>()
+const props = defineProps<{ token: string; isStudent: boolean; workshopId?: string }>()
 const emit = defineEmits<{ expired: [] }>()
 type Dialog = 'code' | 'check-in' | 'evidence' | 'economy' | 'rescheduled' | 'cancelled' | 'participants'
 const workshops = ref<Workshop[]>([])
@@ -48,6 +48,8 @@ const dateFieldFormat = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'America/Bogota',
 })
 let timer: ReturnType<typeof setInterval>
+let active = true
+let focusPending = !!props.workshopId
 
 function started(workshop: Workshop) { return currentTime.value >= Date.parse(workshop.starts_at) }
 function ended(workshop: Workshop) { return currentTime.value >= Date.parse(workshop.ends_at) }
@@ -67,11 +69,18 @@ async function load() {
   loading.value = true
   problem.value = ''
   try {
-    workshops.value = await api<Workshop[]>('/workshops', { token: props.token })
+    const value = await api<Workshop[]>('/workshops', { token: props.token })
+    if (!active) return
+    workshops.value = value
+    if (focusPending && props.workshopId) {
+      focusPending = false
+      await nextTick()
+      if (active) document.getElementById(`agenda-${props.workshopId}`)?.focus()
+    }
   } catch (error) {
-    handleError(error, problem)
+    if (active) handleError(error, problem)
   } finally {
-    loading.value = false
+    if (active) loading.value = false
   }
 }
 
@@ -79,7 +88,7 @@ onMounted(() => {
   timer = setInterval(() => { currentTime.value = Date.now() }, 1000)
   void load()
 })
-onBeforeUnmount(() => clearInterval(timer))
+onBeforeUnmount(() => { active = false; clearInterval(timer) })
 
 async function changeEnrollment(workshop: Workshop) {
   if (busy.value || loading.value) return
@@ -222,7 +231,8 @@ async function checkIn(value: string) {
     </div>
     <p v-if="workshops.length && !visibleWorkshops.length" class="tile state-note">No hay talleres en esta vista.</p>
     <div class="feed-list">
-      <article v-for="workshop in visibleWorkshops" :key="workshop.id" class="tile call-card agenda-card">
+      <article v-for="workshop in visibleWorkshops" :key="workshop.id" :id="`agenda-${workshop.id}`" tabindex="-1"
+        class="tile call-card agenda-card" :class="{ 'agenda-focused': workshop.id === workshopId }">
         <div class="call-icon"><CalendarDays :size="25" aria-hidden="true" /></div>
         <div class="call-content">
           <div class="call-meta">

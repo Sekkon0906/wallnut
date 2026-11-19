@@ -1,6 +1,6 @@
 # Verificación del plan de Wallnut
 
-**Corte · versión 0.20.0**
+**Corte · versión 0.21.0**
 
 Los recorridos de esta nota sirven para comprobar los criterios del [plan de arquitectura](plan-de-desarrollo-y-arquitectura.md). La [web de Railway](https://wallnut-production.up.railway.app) tiene el esquema listo y mantiene cerrado el acceso mientras se configura Google.
 
@@ -11,6 +11,7 @@ Los recorridos de esta nota sirven para comprobar los criterios del [plan de arq
 | Identidad y roles | Sesiones y funciones por rol con identidad simulada en las pruebas. Railway mantiene el acceso cerrado durante la preparación de Google. | Registrar el origen HTTPS en el cliente OAuth y probar cuentas institucionales de los tres roles. |
 | Comunidad y perfiles | Feed cronológico de publicaciones, eventos y convocatorias con filtro por procedencia, paginación y acceso a cada recurso. Fotos y perfiles conservan su visibilidad. | Definir responsables y tiempos de moderación. Probar el recorrido con cuentas institucionales. |
 | Talleres y evidencias | Convocatoria, agenda, inscripción, asistencia, entrega, revisión y recompensa. Reprogramación y cancelación con historial. Lista de inscritos y control de asistencia para el docente asignado. | Probar el QR y el código manual entre dos equipos y verificar que los inscritos encuentran los avisos de agenda. |
+| Avisos | Centro privado con contador, filtro de pendientes y navegación al taller o canje. Avisa de cambios de agenda, entregas y revisiones de evidencias y solicitudes y decisiones de canjes académicos. | Validar la recepción con las cuentas institucionales y la navegación desde un teléfono físico. |
 | Billetera y canje académico | Historial completo con filtros de Points y Coins, reservas y comprobación de saldos. Pagos recuperables, historial de cupos docentes y canje con nota simulada. | Acordar con el tutor la elegibilidad y la procedencia de los Coins usados para canjear Points. |
 | Ardy y ranking | Editor con vistas 2D y 3D, armario, tienda, nueces y ranking voluntario. | Probar interacción y rendimiento en iPhone y Android físicos. |
 | Eventos y torneos | Modalidad individual y por parejas, inscripciones, cuadro, pase directo, marcadores y campeón. | Validar un torneo real con organizador y estudiantes. Confirmar la disponibilidad del espacio por el canal institucional. |
@@ -32,6 +33,14 @@ La tarjeta muestra hasta diez solicitudes recientes de la cuenta, con prioridad 
 Si la confirmación se interrumpe, la tarjeta ofrece «Consultar resultado» antes de permitir otro intento. Esa consulta recupera el estado sin ejecutar un pago. Las solicitudes muestran su vencimiento al llegar la hora, y un intento con resultado incierto conserva la opción de consultar incluso después de esa hora. Los pagos completados se pueden volver a consultar y los reintentos tienen un único descuento.
 
 La restauración de sesión conserva el intento de recuperación cuando falla la conexión. Las respuestas tardías de una sesión anterior se descartan al cambiar de cuenta. Si el navegador restringe el almacenamiento, la sesión funciona en memoria durante el uso de la página.
+
+## Avisos del campus
+
+La campana de Avisos reúne los cambios de talleres y la actividad académica de la propia cuenta. Una reprogramación o cancelación avisa a los inscritos actuales, al tallerista y al docente asignado, excepto a quien hizo el cambio. Las entregas de evidencias y las solicitudes de canje avisan al docente. Sus revisiones avisan al estudiante correspondiente. Un aviso abre el taller concreto o el canje del grupo, sujeto a los permisos actuales de la cuenta.
+
+Los avisos se guardan en la misma transacción que el cambio. Los reintentos mantienen un único aviso y un fallo revierte también su creación. El centro conserva el historial y permite ver solo los que siguen sin leer. Abrir un recurso marca su aviso como leído. «Marcar todos como leídos» se limita a los avisos anteriores al más reciente de la consulta, para conservar los que llegan después. Las listas cargan las páginas anteriores desde su última referencia.
+
+El contador se actualiza al entrar, al volver a la pestaña y cada minuto mientras la página está visible. Abrir el centro o pulsar Actualizar avisos consulta el estado actual. Estos avisos funcionan dentro de Wallnut. Conservan el tipo de cambio y el título del recurso; las fotos, reflexiones, comentarios y notas se consultan en sus secciones autorizadas.
 
 ## Historial completo de la billetera
 
