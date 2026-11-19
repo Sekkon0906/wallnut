@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { api, errorText, RequestError, type FacultyBudget } from './client'
+import FacultyBudgetLedger from './FacultyBudgetLedger.vue'
 
 const props = defineProps<{ token: string; accountId: string; allocate?: boolean }>()
 const emit = defineEmits<{ expired: [] }>()
@@ -12,6 +13,10 @@ const saving = ref(false)
 const problem = ref('')
 const notice = ref('')
 const numbers = new Intl.NumberFormat('es-CO')
+const ledgerFaculty = ref('')
+const ledgerRevision = ref(0)
+let active = true
+let loadRevision = 0
 
 interface Allocation {
   faculty_id: string
@@ -50,22 +55,31 @@ function remember(value: Allocation | null) {
 }
 
 function handleError(error: unknown) {
+  if (!active) return
   if (error instanceof RequestError && error.status === 401) emit('expired')
   else problem.value = errorText(error)
 }
 
 async function load() {
+  const revision = ++loadRevision
   loading.value = true
   problem.value = ''
   try {
-    budgets.value = await api<FacultyBudget[]>('/faculty-budgets', { token: props.token })
+    const value = await api<FacultyBudget[]>('/faculty-budgets', { token: props.token })
+    if (active && revision === loadRevision) budgets.value = value
   } catch (error) {
-    handleError(error)
+    if (revision === loadRevision) handleError(error)
   } finally {
-    loading.value = false
+    if (active && revision === loadRevision) loading.value = false
   }
 }
 onMounted(load)
+onBeforeUnmount(() => { active = false })
+
+function updateBalance(id: string, available: number) {
+  budgets.value = budgets.value.map(budget => budget.faculty_id === id
+    ? { ...budget, available_points: available } : budget)
+}
 
 async function assign() {
   if (!props.allocate || saving.value) return
@@ -81,15 +95,18 @@ async function assign() {
       token: props.token, method: 'POST',
       data: { points: allocation.points, request_id: allocation.request_id },
     })
+    if (!active) return
     remember(null)
     points.value = ''
     notice.value = `Se asignaron ${numbers.format(allocation.points)} Ardi Points al cupo docente.`
+    ledgerRevision.value++
     await load()
   } catch (error) {
+    if (!active) return
     if (error instanceof RequestError && [400, 403, 404, 409, 422].includes(error.status)) remember(null)
     handleError(error)
   } finally {
-    saving.value = false
+    if (active) saving.value = false
   }
 }
 </script>
@@ -108,6 +125,11 @@ async function assign() {
       <li v-for="budget in budgets" :key="budget.faculty_id">
         <span>{{ allocate ? budget.display_name : 'Disponibles para acreditar' }}</span>
         <strong>{{ numbers.format(budget.available_points) }} Points</strong>
+        <button class="button quiet" type="button" :disabled="saving"
+          :aria-expanded="ledgerFaculty === budget.faculty_id" :aria-label="`Ver movimientos de ${budget.display_name}`"
+          @click="ledgerFaculty = ledgerFaculty === budget.faculty_id ? '' : budget.faculty_id">
+          {{ ledgerFaculty === budget.faculty_id ? 'Ocultar movimientos' : 'Ver movimientos' }}
+        </button>
       </li>
     </ul>
     <button v-if="problem && !budgets.length && !pending" class="button quiet" type="button" @click="load">Volver a consultar</button>
@@ -120,11 +142,13 @@ async function assign() {
         </select>
       </label>
       <label>Points por asignar
-        <input v-model.number="points" type="number" min="1" step="1" required :disabled="saving || !!pending" />
+        <input v-model.number="points" type="number" min="1" max="1000000" step="1" required :disabled="saving || !!pending" />
       </label>
       <button class="button primary" type="submit" :disabled="saving || loading">
         {{ saving ? 'Asignando…' : pending ? 'Confirmar asignación pendiente' : 'Asignar Points' }}
       </button>
     </form>
+    <FacultyBudgetLedger v-if="ledgerFaculty" :key="`${ledgerFaculty}-${ledgerRevision}`" :token="token"
+      :faculty-id="ledgerFaculty" @expired="emit('expired')" @updated="updateBalance" />
   </section>
 </template>

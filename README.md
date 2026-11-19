@@ -81,6 +81,8 @@ Si el taller de ejemplo ya terminó, reinicia la API de demostración para abrir
 
 ### Probar la billetera
 
+Desde Administración, abre **Ver movimientos** junto al cupo de un docente. El historial muestra asignaciones, recompensas y conversiones a Points, con totales y referencias de cada operación. Asigna Points y confirma que se actualizan el saldo y el historial. El docente puede abrir el mismo detalle desde **Mis grupos → Mi cupo docente**.
+
 El **Taller de series y convergencia** viene configurado con un cupo inicial de 1.000 Points para la docente. En una base nueva, la billetera de María empieza en cero.
 
 1. Registra asistencia como en el recorrido anterior. Como estudiante, envía una foto y un texto que expliquen qué criterio de convergencia aplicaste y por qué.
@@ -170,7 +172,7 @@ Inicia primero la API y la web local como se explica arriba. Con un emulador And
 
 ```powershell
 adb reverse tcp:5173 tcp:5173
-adb install -r Wallnut-Android-hito18-demo.apk
+adb install -r Wallnut-Android-hito19-demo.apk
 ```
 
 El APK de demostración abre la web local a través del túnel USB y usa las cuentas ficticias. Para recompilarlo, ejecuta desde `web`:

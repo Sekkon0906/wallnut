@@ -8,14 +8,14 @@ from fastapi.staticfiles import StaticFiles
 
 from . import (
     ardi_help, ardy, ardy_nuts, campus, coin_payments, coin_shop, community, economy,
-    events, evidence, feed, grades, identity, pairing, pilot_metrics, profiles, social, tournaments, workshop_agenda,
-    workshops,
+    events, evidence, faculty_ledger, feed, grades, identity, pairing, pilot_metrics, profiles, social,
+    tournaments, workshop_agenda, workshops,
 )
 from .database import connect, migration_files, pending_migrations
 
 
 def create_app(verify_identity=None):
-    api = FastAPI(title="Wallnut", version="0.18.0")
+    api = FastAPI(title="Wallnut", version="0.19.0")
     api.state.verify_identity = verify_identity if verify_identity is not None else identity.configured_verifier()
     allowed_origins = [
         origin.strip() for origin in os.environ.get("WEB_ORIGINS", "").split(",")
@@ -36,6 +36,7 @@ def create_app(verify_identity=None):
     api.include_router(workshop_agenda.router, prefix="/v1")
     api.include_router(evidence.router, prefix="/v1")
     api.include_router(economy.router, prefix="/v1")
+    api.include_router(faculty_ledger.router, prefix="/v1")
     api.include_router(grades.router, prefix="/v1")
     api.include_router(ardy.router, prefix="/v1")
     api.include_router(ardy_nuts.router, prefix="/v1")
